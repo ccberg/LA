@@ -43,7 +43,7 @@ htmlcov/
 .nox/
 .coverage
 .coverage.*
-.cache
+cache
 nosetests.xml
 coverage.xml
 *.cover
@@ -130,3 +130,6 @@ dmypy.json
 
 # JetBrains related stuff
 .idea/
+
+# Numpy object cache
+cache/

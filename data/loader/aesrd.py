@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 import h5py
 
+# TODO unfinished, to be modelled to ASCAD loader.
+
 AESRD_DATA = "../../data/AES_RD"
 
 

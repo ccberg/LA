@@ -1,5 +1,7 @@
 import pandas as pd
 
+# TODO unfinished, to be modelled to ASCAD loader.
+
 AESHD_DATA = "../../data/AES_HD"
 
 

@@ -1,7 +1,7 @@
 import os
 import numpy as np
 
-from settings.constants import ROOT_DIR
+from tools.constants import ROOT_DIR
 
 
 def cache_np(name, f, *args, v=1, replace=False):

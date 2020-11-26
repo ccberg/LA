@@ -15,7 +15,7 @@ def cache_np(name, f=None, *args, v=1, replace=False):
         if replace or not os.path.exists(f_name):
             np.savez_compressed(f_name, data=f(*args))
 
-    with np.load(f_name) as file:
+    with np.load(f_name, allow_pickle=True) as file:
         return file['data']
 
 

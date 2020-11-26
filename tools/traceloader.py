@@ -7,10 +7,10 @@ import pandas as pd
 
 class ASCAD:
     def __init__(self):
-        self.default = TraceGroup(ASCADData.random_key(), ASCADData.data_range)
-        self.random = TraceGroup(ASCADData.random_key(), ASCADData.data_range, True)
-        self.desync_50 = TraceGroup(ASCADData.random_key(ASCADDataType.desync_50), ASCADData.data_range)
-        self.desync_100 = TraceGroup(ASCADData.random_key(ASCADDataType.desync_50), ASCADData.data_range)
+        self.default = TraceGroup(ASCADData.fixed_key(), ASCADData.data_range)
+        self.random = TraceGroup(ASCADData.fixed_key(), ASCADData.data_range, True)
+        self.desync_50 = TraceGroup(ASCADData.fixed_key(ASCADDataType.desync_50), ASCADData.data_range)
+        self.desync_100 = TraceGroup(ASCADData.fixed_key(ASCADDataType.desync_50), ASCADData.data_range)
 
 
 class TraceGroup:

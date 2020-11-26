@@ -32,9 +32,9 @@ class ASCADData(TraceGroup):
     data_range = ASCAD_SELECTED_DATA_RANGE
 
     @staticmethod
-    def random_key(data_type=ASCADDataType.default) -> object:
+    def random_key(data_type=ASCADDataType.default) -> type(h5py.File):
         return h5py.File(f"{ASCAD_DATA}{ASCAD_DATA_VAR}/{data_type}.h5", 'r')
 
     @staticmethod
-    def fixed_key(data_type=ASCADDataType.default) -> object:
+    def fixed_key(data_type=ASCADDataType.default) -> type(h5py.File):
         return h5py.File(f"{ASCAD_DATA}{ASCAD_DATA_FIX}/{data_type}.h5", 'r')

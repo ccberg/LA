@@ -5,29 +5,12 @@ from data.loader.ascad import ASCADData, ASCADDataType
 import pandas as pd
 
 
-class ASCAD:
-    def __init__(self):
-        self.default = TraceGroup(ASCADData.fixed_key(), ASCADData.data_range)
-        self.random = TraceGroup(ASCADData.fixed_key(), ASCADData.data_range, True)
-        self.desync_50 = TraceGroup(ASCADData.fixed_key(ASCADDataType.desync_50), ASCADData.data_range)
-        self.desync_100 = TraceGroup(ASCADData.fixed_key(ASCADDataType.desync_50), ASCADData.data_range)
-
-
-class TraceGroup:
-    def __init__(self, trace_group, trace_range, shuffle=False):
-        self.profile = TraceCategory(trace_group["Profiling_traces"], trace_range, shuffle)
-        self.attack = TraceCategory(trace_group["Attack_traces"], trace_range, shuffle)
-
-
 class TraceCategory:
-    def __init__(self, trace_category, trace_range, shuffle=False):
+    def __init__(self, trace_category, trace_range):
         self.t_range = trace_range
 
         self.traces = np.array(trace_category["traces"])
         self.labels = np.array(trace_category["labels"])
-
-        if shuffle:
-            np.random.shuffle(self.labels)
 
         self.tk_cache = {}
         self.ct_cache = {}
@@ -52,3 +35,37 @@ class TraceCategory:
             self.ct_cache[label] = np.array(res, dtype=int)
 
         return self.ct_cache[label]
+
+
+class TraceGroup:
+    def __init__(self, trace_group, trace_range, category_type=TraceCategory):
+        self.profile = category_type(trace_group["Profiling_traces"], trace_range)
+        self.attack = category_type(trace_group["Attack_traces"], trace_range)
+
+
+class RandomTCat(TraceCategory):
+    def __init__(self, trace_category, trace_range):
+        super().__init__(trace_category, trace_range)
+
+        np.random.shuffle(self.labels)
+
+
+class MaskedKeyTCat(TraceCategory):
+    def __init__(self, trace_category, trace_range):
+        super().__init__(trace_category, trace_range)
+
+        masked_keys = trace_category["metadata"]
+        self.labels = np.array(masked_keys)
+
+
+class ASCAD:
+    key_size = 256
+    trace_len = 1400
+    offset = -128
+
+    def __init__(self):
+        self.default = TraceGroup(ASCADData.random_key(), ASCADData.data_range)
+        self.random = TraceGroup(ASCADData.random_key(), ASCADData.data_range, RandomTCat)
+        self.masked = TraceGroup(ASCADData.random_key(), ASCADData.data_range, MaskedKeyTCat)
+        self.desync_50 = TraceGroup(ASCADData.random_key(ASCADDataType.desync_50), ASCADData.data_range)
+        self.desync_100 = TraceGroup(ASCADData.random_key(ASCADDataType.desync_50), ASCADData.data_range)

@@ -17,6 +17,7 @@ class TraceCategory:
 
     def filter_traces(self, label):
         if label not in self.tk_cache:
+            # TODO Warning here
             ixs = np.where(np.array(self.labels) == label)[0]
             self.tk_cache[label] = np.array(self.traces[ixs])
 
@@ -54,8 +55,12 @@ class MaskedKeyTCat(TraceCategory):
     def __init__(self, trace_category, trace_range):
         super().__init__(trace_category, trace_range)
 
-        masked_keys = trace_category["metadata"]
-        self.labels = np.array(masked_keys)
+        masked_byte_ix = 2
+        full_key_ix = 1
+        label_len = range(len(self.labels))
+
+        # masked_keys = [trace_category["metadata"][i][full_key_ix][masked_byte_ix] for i in label_len]
+        # self.labels = np.array(masked_keys)
 
 
 class ASCAD:

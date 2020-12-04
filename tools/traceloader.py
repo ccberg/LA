@@ -55,12 +55,7 @@ class MaskedKeyTCat(TraceCategory):
     def __init__(self, trace_category, trace_range):
         super().__init__(trace_category, trace_range)
 
-        masked_byte_ix = 2
-        full_key_ix = 1
-        label_len = range(len(self.labels))
-
-        # masked_keys = [trace_category["metadata"][i][full_key_ix][masked_byte_ix] for i in label_len]
-        # self.labels = np.array(masked_keys)
+        self.labels = trace_category["labels_mask"]
 
 
 class ASCAD:

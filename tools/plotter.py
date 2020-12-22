@@ -13,7 +13,15 @@ def shadow_plot(lines: dict, **args):
     assert len(keys) == 2
 
     sns.lineplot(data=Df({keys[0]: lines[keys[0]]}))
-    sns.lineplot(data=Df({keys[1]: lines[keys[1]]}), palette=[sns.color_palette()[1]], alpha=.5).set(**args)
+
+    line2_args = {"data": Df({keys[1]: lines[keys[1]]}), "palette": [sns.color_palette()[1]], "alpha": .5}
+    if "split_y" in args:
+        if args["split_y"]:
+            line2_args["ax"] = plt.twinx()
+
+        del args["split_y"]
+
+    sns.lineplot(**line2_args).set(**args)
 
     show(block=False)
 

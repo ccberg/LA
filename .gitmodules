@@ -1,0 +1,3 @@
+[submodule "Report source files"]
+	path = report/src
+	url = git@github.com:ccberg/LA-report.git

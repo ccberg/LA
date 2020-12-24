@@ -4,9 +4,9 @@ from random import choices
 import numpy as np
 from tqdm import tqdm
 
-from tools.cache import cache_np
-from tools.traceloader import ASCAD, TraceGroup
-from tvla.chi2 import chi_squared
+from src.tools import cache_np
+from src.tools import ASCAD, TraceGroup
+from src.tvla.chi2 import chi_squared
 
 MAX_CTABLE_SIZE = 64
 DEFAULT_SLIDING_WINDOW_SIZE = 10

@@ -1,7 +1,7 @@
 import os
 import numpy as np
 
-from tools.constants import ROOT_DIR
+from src.tools import ROOT_DIR
 import pickle as pkl
 
 

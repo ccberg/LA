@@ -10,3 +10,6 @@
 ### Conda
 - Export the conda env: `conda env export > ./support/conda.yml`
 - Update YAML file: `conda env update -f ./support/conda.yml`
+
+### Publishing
+- Check for any "TODO"-notes still left in the repo.

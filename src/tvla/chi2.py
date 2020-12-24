@@ -26,6 +26,7 @@ FUN_CACHE[0] = lambda _: 0.0
 
 
 def p_chi(sum_chi, dof):
+    # noinspection PyTypeChecker
     return quad(FUN_CACHE[dof], sum_chi, np.inf)[0]
 
 
@@ -35,6 +36,11 @@ RANGE_CAT = range(NUM_CATEGORIES)
 
 
 def chi_squared(observed, expected):
+    """
+    Calculates the p value for rejecting H0.
+    Small p values give evidence to reject the null hypothesis and conclude that for the
+    scenarios presented in ctable the occurrences of the observations are not independent.
+    """
     categories = np.array([observed, expected])
 
     # Bins where both categories are > 0

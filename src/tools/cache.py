@@ -1,12 +1,12 @@
 import os
 import numpy as np
 
-from src.tools import ROOT_DIR
+from src.tools.constants import ROOT_DIR
 import pickle as pkl
 
 
 def get_cache():
-    return f"{ROOT_DIR}/.cache"
+    return f"{ROOT_DIR}/../.cache"
 
 
 def cache_np(name, f=None, *args, v=1, replace=False):

@@ -1,7 +1,7 @@
 from tqdm import tqdm
 import requests
 
-from src.tools import sha1_check
+from src.tools.shasum_check import sha1_check
 
 
 def fetch(url, target_file, sha1_hash=None):

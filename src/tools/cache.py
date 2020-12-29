@@ -1,3 +1,4 @@
+import errno
 import os
 import numpy as np
 
@@ -7,6 +8,15 @@ import pickle as pkl
 
 def get_cache_loc():
     return f"{ROOT_DIR}/../.cache"
+
+
+def mkdir_suppress_exist(dirname):
+    try:
+        os.mkdir(dirname)
+    except OSError as exc:
+        if exc.errno != errno.EEXIST:
+            raise
+        pass
 
 
 def cache_np(name, f=None, *args, v=1, replace=False):
@@ -38,8 +48,13 @@ def cache_pkl(name, cls_name=None, *args, v=1, replace=False):
 
 
 class NBCache:
-    def __init__(self, path):
+    def __init__(self, path, version=None):
         self.path = path
+
+        if version is not None:
+            self.path += "/" + version
+
+        os.makedirs(get_cache_loc() + "/" + self.path, exist_ok=True)
 
     def np(self, name: str, *args):
         res = cache_np(f"{self.path}/{name}", *args)

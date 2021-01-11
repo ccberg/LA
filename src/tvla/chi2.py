@@ -55,3 +55,7 @@ def chi_squared(observed, expected):
 
     # return chi_acc, dof
     return p_chi(chi_acc, dof)
+
+
+def chi2(o, e, p):
+    return chi_squared(o, e) > p

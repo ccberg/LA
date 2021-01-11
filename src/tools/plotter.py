@@ -50,3 +50,19 @@ def line_plot_poi(lines: dict, poi: list, poi_alpha=.3, **args):
     plt.show()
 
     show(block=False)
+
+
+def plot_longform(traces):
+    sns.set_style('whitegrid')
+
+    longform = []
+    for trace in traces:
+        for ix in range(len(trace)):
+            longform.append((ix, trace[ix]))
+
+    # TODO refine
+    cols = ["Sample point", "Power"]
+    df = Df(longform, columns=cols)
+    sns.lineplot(data=df, x=cols[0], y=cols[1])
+
+

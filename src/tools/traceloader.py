@@ -1,7 +1,7 @@
 import numpy as np
 from collections import Counter
 
-from src.data.ascad import ASCADData, ASCADDataType
+from src.data.loaders.ascad import ASCADData, ASCADDataType
 import pandas as pd
 
 

@@ -54,8 +54,8 @@ def chi_squared(observed, expected):
     dof = (len(sum_oe) - 1) * NUM_CAT_DOF
 
     # return chi_acc, dof
-    return p_chi(chi_acc, dof)
+    return 1 - p_chi(chi_acc, dof)
 
 
-def chi2(o, e, p):
-    return chi_squared(o, e) > p
+def chi2(lefts, rights, p):
+    return np.array([chi_squared(l, r) for l, r in zip(lefts, rights)]) > p

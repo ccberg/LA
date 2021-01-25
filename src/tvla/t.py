@@ -25,7 +25,9 @@ if __name__ == '__main__':
     sps = np.array([gen_trace(5), gen_trace(5)])
 
     t_mv = [make_t_test(350)(*mv, .95) for mv in np.moveaxis(get_mvs(sps), 0, 1)]
-    t_base = np.array(stats.stats.ttest_ind(*sps)[1] > .95)
+    t_base = np.array(stats.stats.ttest_ind(*sps, equal_var=False)[1] > .95)
 
-    print(f"Should be larger than 0 for the assertion to make sense: ({sum(t_mv)}).")
+    # If the sum of mv = 0, the equality assertion between t_mv and t_base would always pass.
+    assert sum(t_mv) > 0
+
     assert_almost_equal(t_mv, t_base)

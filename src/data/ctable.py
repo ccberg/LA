@@ -13,6 +13,19 @@ from src.tools.cache import get_cache_loc, NBCache
 from src.tools.traceloader import TraceCategory
 
 
+def ctable_mv(ctable: np.array, num_observations: int):
+    """
+    Calculates the mean and variance from a contingency table with a corresponding number of observations.
+    """
+    # Using 128-bit floats prevents some rounding errors when comparing with the np implementation of var and mean.
+    ixs = np.arange(0, len(ctable), dtype=np.float128)
+
+    mu = (ctable * ixs).sum() / num_observations
+    sigma2 = ((ctable * ixs ** 2).sum() / num_observations) - (mu ** 2)
+
+    return mu, sigma2
+
+
 class CTableStore:
     def __init__(self, tc: TraceCategory, pref_size: int, key_range=256, offset=128):
         self.tc = tc

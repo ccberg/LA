@@ -1,12 +1,7 @@
 import numpy as np
-from numpy.testing import assert_almost_equal
-from scipy import stats
-
-from src.data.dummy.trace_generation import gen_trace
-from src.tools.stat_moment import get_mvs
 
 
-def make_t_test(n):
+def make_t_test(n: int):
     sn = np.sqrt(2 / n)
 
     def test(a: np.array, b: np.array):
@@ -21,4 +16,3 @@ def make_t_test(n):
         return np.abs(t).astype(np.float64)
 
     return test
-

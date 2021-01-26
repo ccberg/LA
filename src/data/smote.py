@@ -1,35 +1,26 @@
 import numpy as np
 
 
-def smote_slice(trace_slice, target_size):
-    n = len(trace_slice)
+def smote(samples: np.array, preferred_size: int = -1):
+    if preferred_size < 0:
+        preferred_size = max([len(s) for s in samples])
 
-    smote_num = target_size - n
-    smote_dist = np.random.uniform(size=(smote_num, trace_slice.shape[1]))
+    # Create result array in correct shape (number of samples = preferred size).
+    res_shape = (len(samples), preferred_size, len(samples[0][0]))
+    res = np.zeros(res_shape)
 
-    s1 = np.random.randint(n, size=smote_num)
-    s2 = (s1 + np.random.randint(1, n, size=smote_num)) % n
+    for ix, sample_slice in enumerate(samples):
+        num_smote = preferred_size - len(sample_slice)
+        assert num_smote >= 0
 
-    d = (np.array(trace_slice[s1], dtype=int) - np.array(trace_slice[s2], dtype=int)) * smote_dist
-    app = np.array(np.round(trace_slice[s2] + d), dtype=np.uint8)
+        ix_left = np.random.uniform(0, len(sample_slice), num_smote).astype(int)
+        ix_right = (ix_left + np.random.uniform(1, len(sample_slice), num_smote).astype(int)) % len(sample_slice)
 
-    return app
+        dist = sample_slice[ix_left] - sample_slice[ix_right]
+        smote_delta = dist * np.random.uniform(size=dist.shape)
+        smote_res = np.round(sample_slice[ix_right] + smote_delta).astype(int)
 
+        res[ix][:len(sample_slice)] = sample_slice
+        res[ix][len(sample_slice):] = smote_res
 
-def smote(trace_categories, target_size, dtype=np.uint8):
-    acc = []
-
-    for c_ix, category in enumerate(trace_categories):
-        res = np.zeros((len(category), target_size, category[0].shape[1]), dtype=dtype)
-
-        for s_ix, trace_slice in enumerate(category):
-            app = smote_slice(trace_slice, target_size)
-
-            if len(app) > 0:
-                res[s_ix] = np.concatenate((trace_slice, app))
-            else:
-                res[s_ix] = trace_slice
-
-        acc.append(res)
-
-    return acc
+    return res

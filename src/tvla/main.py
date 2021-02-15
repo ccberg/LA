@@ -18,7 +18,7 @@ def tvla(test, left, right, p=1, debug=False):
     """
     if debug:
         assert len(left) == 4
-        assert len(right) == 2
+        assert len(right) == 4
 
     # Four different samples from distribution A.
     a, b, c, d = left
@@ -34,6 +34,9 @@ def tvla(test, left, right, p=1, debug=False):
     ab2 = test(b, y)
 
     t = np.percentile([aa1, aa2, ab1, ab2], p)
+
+    if debug:
+        print(t)
 
     # This value for t lets p% of the devices fail.
     return device_fails(aa1, aa2, t), device_fails(ab1, ab2, t)

@@ -8,9 +8,9 @@ import seaborn as sns
 from tqdm import tqdm
 
 from src.data.smote import smote
-from src.tools.traceloader import ASCAD
+from src.data.traceloader import ASCAD
 from src.tools.cache import get_cache_loc, NBCache
-from src.tools.traceloader import TraceCategory
+from src.data.traceloader import TraceCategory
 
 
 def ctable_mv(ctable: np.array, num_observations: int):
@@ -32,11 +32,11 @@ class CTableStore:
         self.key_range = key_range
         self.offset = offset
 
-        max_slice_size = max([math.ceil(len(self.tc.filter_traces(k)) / 4) for k in range(self.key_range)])
+        max_slice_size = max([math.ceil(len(self.tc.filter_by_key(k)) / 4) for k in range(self.key_range)])
         self.size = max(pref_size, max_slice_size)
 
-        t_max = max([self.tc.filter_traces(k).max() for k in range(self.key_range)]) + self.offset
-        t_min = min([self.tc.filter_traces(k).min() for k in range(self.key_range)]) + self.offset
+        t_max = max([self.tc.filter_by_key(k).max() for k in range(self.key_range)]) + self.offset
+        t_min = min([self.tc.filter_by_key(k).min() for k in range(self.key_range)]) + self.offset
 
         self.trace_type = np.uint8
         # Maximum value of trace should be lower than the capacity of uint8.
@@ -62,7 +62,7 @@ class CTableStore:
         res = {}
 
         for k in tqdm(range(self.key_range), "Slicing up traces"):
-            ts = self.tc.filter_traces(k) + self.offset
+            ts = self.tc.filter_by_key(k) + self.offset
             uts = np.array([np.array(t, dtype=self.trace_type) for t in ts])
 
             np.random.shuffle(uts)

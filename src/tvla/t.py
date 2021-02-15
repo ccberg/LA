@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.stats import t as stats_t
 
 
 def make_t_test(n: int):
@@ -13,6 +14,6 @@ def make_t_test(n: int):
 
         t = m / s
 
-        return np.abs(t).astype(np.float64)
+        return stats_t.sf(np.abs(t).astype(np.float64), n-1) * 2
 
     return test

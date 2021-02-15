@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 
+
 # TODO try window = 100, window bug.
 def select_poi(diff, window=15):
     """

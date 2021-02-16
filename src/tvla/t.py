@@ -14,6 +14,6 @@ def make_t_test(n: int):
 
         t = m / s
 
-        return stats_t.sf(np.abs(t).astype(np.float64), n-1) * 2
+        return 1 - stats_t.sf(np.abs(t).astype(np.float64), n-1) * 2
 
     return test

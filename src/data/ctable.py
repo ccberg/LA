@@ -8,7 +8,7 @@ import seaborn as sns
 from tqdm import tqdm
 
 from src.data.smote import smote
-from src.data.traceloader import ASCAD
+from src.data.traceloader import AscadRandomKey
 from src.tools.cache import get_cache_loc, NBCache
 from src.data.traceloader import TraceCategory
 
@@ -124,7 +124,7 @@ def cache_cts(c: NBCache, name: str, t_cat: TraceCategory, pref_size: int):
 
 
 if __name__ == '__main__':
-    ascad = ASCAD()
+    ascad = AscadRandomKey()
     cts = CTableStore(ascad.masked.profile, 1)
 
     test_cts_split = np.array([i[0] for i in cts.slices[0][0][0]])

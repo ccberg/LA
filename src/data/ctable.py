@@ -7,7 +7,7 @@ import pandas as pd
 import seaborn as sns
 from tqdm import tqdm
 
-from src.data.smote import smote
+from src.data.smote import smote_slices
 from src.data.traceloader import AscadRandomKey
 from src.tools.cache import get_cache_loc, NBCache
 from src.data.traceloader import TraceCategory
@@ -81,7 +81,7 @@ class CTableStore:
         res = {}
 
         for k in tqdm(range(self.key_range), "SMOTEing traces"):
-            res[k] = np.array(smote(slices[k], self.size, self.trace_type))
+            res[k] = np.array(smote_slices(slices[k], self.size, self.trace_type))
 
         return res
 

@@ -14,13 +14,15 @@ class TraceCategory:
         self.labels = np.array(trace_category["labels"])
 
         self.hamming_weights = np.array(trace_category["hamming_weights"])
+        # 3rd state byte after 1st round SBox
+        self.aes_r1b3 = np.array(trace_category["aes_r1b3"])
 
         self.tk_cache = {}
         self.hw_cache = {}
         self.ct_cache = {}
 
         # Take the Hamming Weight of the third state byte.
-        self.hw_target_byte = 0
+        self.hw_target_byte = 2
         # Take Hamming Weight of the state after SBox from the first round.
         self.hw_target_round = 0
 
@@ -36,19 +38,25 @@ class TraceCategory:
 
         return self.tk_cache[key]
 
-    def filter_by_hw(self, target: bool):
-        target_key = int(target)
+    def filter_by_hw(self, above_median: bool):
+        target_key = int(above_median)
         if target_key not in self.hw_cache:
-            hws = self.hamming_weights[:, self.hw_target_round, self.hw_target_byte]
+            hws = self.hw_labels()
 
-            if target:
-                ixs = np.where(hws == self.hw_target)[0]
+            if above_median:
+                ixs = np.where(hws < 4)[0]
             else:
-                ixs = np.where(hws != self.hw_target)[0]
+                ixs = np.where(hws > 4)[0]
 
             self.hw_cache[target_key] = self.traces[ixs]
 
         return self.hw_cache[target_key]
+
+    def hw_labels(self):
+        """
+        Returns the hamming weight labels for the first byte of the first state all traces in this dataset
+        """
+        return self.hamming_weights[:, self.hw_target_round, self.hw_target_byte]
 
     def contingency_table(self, label):
         """

@@ -7,7 +7,7 @@ import pickle as pkl
 
 
 def get_cache_loc():
-    return f"{ROOT_DIR}/../.cache"
+    return f"./..cache"
 
 
 def mkdir_suppress_exist(dirname):
@@ -19,31 +19,42 @@ def mkdir_suppress_exist(dirname):
         pass
 
 
+def make_dirs(file_name):
+    dir_name = os.path.dirname(file_name)
+    if not os.path.exists(dir_name):
+        os.makedirs(dir_name)
+
+
 def cache_np(name, f=None, *args, v=1, replace=False):
     """
     Caches the result of a function. In case no function is supplied,
-    the results of the specified .cache name are returned.
+    the results of the specified ..cache name are returned.
     """
-    f_name = f"{get_cache_loc()}/{name}_{v}.npz"
+    file_name = f"{get_cache_loc()}/{name}_{v}.npz"
+
     if f is not None:
         # Only try to store the results of f(*args) if f is supplied.
-        if replace or not os.path.exists(f_name):
-            np.savez_compressed(f_name, data=f(*args))
+        if replace or not os.path.exists(file_name):
+            make_dirs(file_name)
 
-    with np.load(f_name, allow_pickle=True) as file:
+            np.savez_compressed(file_name, data=f(*args))
+
+    with np.load(file_name, allow_pickle=True) as file:
         return file['data']
 
 
-def cache_pkl(name, cls_name=None, *args, v=1, replace=False):
-    f_name = f"{get_cache_loc()}/{name}_{v}.pkl"
+def cache_pkl(name, f=None, *args, v=1, replace=False):
+    file_name = f"{get_cache_loc()}/{name}_{v}.pkl"
 
-    if cls_name is not None:
-        # Only try to store the results of cls_name(*args) if cls_name is supplied.
-        if replace or not os.path.exists(f_name):
-            with open(f_name, "wb") as file:
-                pkl.dump(cls_name(*args), file)
+    if f is not None:
+        # Only try to store the results of f(*args) if f is supplied.
+        if replace or not os.path.exists(file_name):
+            make_dirs(file_name)
 
-    with open(f_name, "rb") as file:
+            with open(file_name, "wb") as file:
+                pkl.dump(f(*args), file)
+
+    with open(file_name, "rb") as file:
         return pkl.load(file)
 
 

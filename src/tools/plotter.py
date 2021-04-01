@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 
 from pandas import DataFrame as Df
 from matplotlib.pyplot import show
+import numpy as np
 
 
 def shadow_plot(lines: dict, **args):
@@ -66,3 +67,27 @@ def plot_longform(traces):
     sns.lineplot(data=df, x=cols[0], y=cols[1])
 
 
+def plot_accu(accu: dict, title: str = "", sub_sample=False):
+    """
+    Plots p-gradients from a given set of accumulators.
+    """
+    # def get_sparse(gradient):
+    #     if sub_sample:
+    #         return np.arange(0, len(gradient), len(gradient) / 100).astype(int)
+    #     return gradient
+    min_len = min([len(ls.p_gradient) for ls in list(zip(*accu.items()))[1]])
+    plot_p_gradient(dict([(n, np.array(a.p_gradient[:min_len])) for n, a in accu.items()]), title)
+
+
+def plot_p_gradient(gradients: dict, title: str = ""):
+    """
+    Plots p-gradients.
+    """
+    sns.set_style('whitegrid')
+
+    g = sns.lineplot(data=gradients)
+    g.set(xscale="log", yscale="log", ylabel="min. $p$-value for dist. $A \\neq$ dist. $B$", xlabel="Number of traces",
+          title=f"min-$p$ gradient\n{title}")
+    g.invert_yaxis()
+
+    show(block=False)

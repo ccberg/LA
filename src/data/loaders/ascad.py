@@ -27,6 +27,10 @@ class TraceGroup:
     def fixed_key(data_type: str) -> h5py.File:
         pass
 
+    @staticmethod
+    def raw() -> h5py.File:
+        pass
+
 
 class ASCADData(TraceGroup):
     data_range = ASCAD_SELECTED_DATA_RANGE
@@ -38,3 +42,7 @@ class ASCADData(TraceGroup):
     @staticmethod
     def fixed_key(data_type=ASCADDataType.default) -> type(h5py.File):
         return h5py.File(f"{ASCAD_DATA}{ASCAD_DATA_FIX}/{data_type}.h5", 'r')
+
+    @staticmethod
+    def raw() -> type(h5py.File):
+        return h5py.File(f"{ASCAD_DATA}/ASCAD_data/ASCAD_databases/atmega8515-raw-traces.h5", 'r')

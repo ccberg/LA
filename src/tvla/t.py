@@ -3,20 +3,24 @@ from scipy.stats import t as stats_t
 from scipy.stats import ttest_ind
 
 
-def make_t_test(n: int, only_p=True):
+def make_t_test(n: int):
     """
     Returns a t-test that takes the sample mean and variance for a list of sample points from A, and a list of sample
     points for B.
     """
-    ns = np.sqrt(n)
+    n_sqrt = np.sqrt(n)
     nmm = n - 1
 
     def welch_t_test(a: np.array, b: np.array):
-        mean_a, var_a = np.moveaxis(a, 0, -1).astype(np.float64)
-        mean_b, var_b = np.moveaxis(b, 0, -1).astype(np.float64)
+        mean_a, var_a = a
+        mean_b, var_b = b
+
+        # Prevent division by 0 errors
+        # var_a += .001
+        # var_b += .001
 
         m = mean_a - mean_b
-        s = np.sqrt(var_a + var_b) / ns
+        s = np.sqrt(var_a + var_b) / n_sqrt
 
         t = m / s
 
@@ -25,9 +29,6 @@ def make_t_test(n: int, only_p=True):
         p = 2 * stats_t(df=dof).cdf(-np.abs(t))
 
         return t, p
-
-    if only_p:
-        return lambda a, b: welch_t_test(a, b)[1]
 
     return welch_t_test
 

@@ -3,7 +3,10 @@ from src.aes.sbox import s_box, inv_s_box
 import numpy as np
 
 """
-TODO Add reference
+Implementation of AES in Python found here:
+https://github.com/bozhu/AES-Python/blob/master/aes.py
+
+Modified the AES class so it stores the hamming weights of the state in `hw_after_round`.
 """
 
 def sub_bytes(s):

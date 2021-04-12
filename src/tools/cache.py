@@ -7,7 +7,7 @@ import pickle as pkl
 
 
 def get_cache_loc():
-    return f"./..cache"
+    return f"./.cache"
 
 
 def mkdir_suppress_exist(dirname):

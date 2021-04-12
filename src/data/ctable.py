@@ -8,9 +8,9 @@ import seaborn as sns
 from tqdm import tqdm
 
 from src.data.smote import smote_slices
-from src.data.traceloader import AscadRandomKey
+from src.data.ascad import AscadRandomKey
 from src.tools.cache import get_cache_loc, NBCache
-from src.data.traceloader import TraceCategory
+from src.data.ascad import TraceCategory
 
 
 def ctable_mv(ctable: np.array, num_observations: int):

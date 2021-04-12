@@ -6,7 +6,7 @@ from scipy.stats import stats
 from tensorflow.python.keras import Model
 from tensorflow.python.keras.utils.np_utils import to_categorical
 
-from src.data.traceloader import TraceGroup
+from src.data.ascad import TraceGroup
 
 NUM_CLASSES = 9  # Byte ranges from 00 (HW = 0) to FF (HW = 8), resulting in 9 classes for HW.
 

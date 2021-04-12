@@ -4,7 +4,7 @@ import seaborn as sns
 from scipy.stats import stats
 
 from src.tools.poi import select_poi
-from src.data.traceloader import AscadRandomKey, TraceCategory
+from src.data.ascad import TraceCategory
 
 
 def statistical_moment(traces: np.array, moment=1):

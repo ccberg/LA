@@ -86,8 +86,8 @@ def plot_p_gradient(gradients: dict, title: str = ""):
     sns.set_style('whitegrid')
 
     g = sns.lineplot(data=gradients)
-    g.set(xscale="log", yscale="log", ylabel="min. $p$-value for dist. $A \\neq$ dist. $B$", xlabel="Number of traces",
-          title=f"min-$p$ gradient\n{title}")
+    g.set(xscale="log", yscale="log", ylabel="$p$-value for dist. $A \\neq$ dist. $B$", xlabel="Number of traces",
+          title=title)
     g.invert_yaxis()
 
     show(block=False)

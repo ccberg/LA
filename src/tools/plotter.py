@@ -79,15 +79,19 @@ def plot_accu(accu: dict, title: str = "", sub_sample=False):
     plot_p_gradient(dict([(n, np.array(a.p_gradient[:min_len])) for n, a in accu.items()]), title)
 
 
-def plot_p_gradient(gradients: dict, title: str = ""):
+def plot_p_gradient(gradients: dict, title: str = "", max_traces: int = None):
     """
     Plots p-gradients.
     """
     sns.set_style('whitegrid')
 
+    for k in gradients:
+        gradients[k] = gradients[k][:max_traces]
+
     g = sns.lineplot(data=gradients)
-    g.set(xscale="log", yscale="log", ylabel="$p$-value for dist. $A \\neq$ dist. $B$", xlabel="Number of traces",
-          title=title)
+    g.set(yscale="log", ylabel="$p$-value for dist. $A \\neq$ dist. $B$", xlabel="Number of traces",
+          title=title, ylim=(10**-32, 1))
     g.invert_yaxis()
+    g.axhline(10 ** -5, ls='--', color="red")
 
     show(block=False)

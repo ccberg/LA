@@ -11,6 +11,13 @@ from src.data.ascad import TraceGroup
 NUM_CLASSES = 9  # Byte ranges from 00 (HW = 0) to FF (HW = 8), resulting in 9 classes for HW.
 
 
+def encode(y):
+    """
+    One-hot encode labels
+    """
+    return to_categorical(y, num_classes=NUM_CLASSES)
+
+
 def prepare_traces(profile, attack):
     """
     Normalizes the traces, one-hot encodes the labels.
@@ -22,11 +29,7 @@ def prepare_traces(profile, attack):
     x_prof = (profile[0] - prof_mean) / prof_std
     x_att = (attack[0] - prof_mean) / prof_std
 
-    # One-hot encode labels
-    y_prof = to_categorical(profile[1], num_classes=NUM_CLASSES)
-    y_att = to_categorical(attack[1], num_classes=NUM_CLASSES)
-
-    return x_prof, y_prof, x_att, y_att
+    return x_prof, encode(profile[1]), x_att, encode(attack[1])
 
 
 def fetch_traces(tg: TraceGroup):
@@ -115,8 +118,6 @@ def plot_predictions(mdl: Model, x_attack: np.array, y_attack: np.array):
     less_4, greater_4 = split_by_hw(mdl, x_attack, y_attack)
     num_all = len(less_4[0]) + len(greater_4[0])
 
-    plt.figure(figsize=(9, 6))
-
     g = sns.histplot(data={
         "HW < 4": less_4[0],
         "HW > 4": greater_4[0]
@@ -130,8 +131,6 @@ def plot_gradient(mdl: Model, x_attack: np.array, y_attack: np.array, max_traces
     Plots the min-p gradient for the probability that predictions for classes
     A (HW < 4) and B (HW > 4) are of the same distribution.
     """
-    plt.figure(figsize=(9, 6))
-
     g = sns.lineplot(data=p_gradient_dl_la(mdl, x_attack, y_attack, max_traces))
     g.set(yscale="log", xlabel="Samples", ylabel="$p$-value",
           title="Attack trace predictions, $p$-gradient.\n A: $HW < 4$. B: $HW > 4$")

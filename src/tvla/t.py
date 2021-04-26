@@ -1,4 +1,5 @@
 import numpy as np
+from numpy.testing import assert_almost_equal
 from scipy.stats import t as stats_t
 from scipy.stats import ttest_ind
 
@@ -14,10 +15,6 @@ def make_t_test(n: int):
     def welch_t_test(a: np.array, b: np.array):
         mean_a, var_a = a
         mean_b, var_b = b
-
-        # Prevent division by 0 errors
-        # var_a += .001
-        # var_b += .001
 
         m = mean_a - mean_b
         s = np.sqrt(var_a + var_b) / n_sqrt
@@ -35,21 +32,23 @@ def make_t_test(n: int):
 
 if __name__ == '__main__':
     def gen_example(mean, trace_num, trace_len=1400):
-        return np.array([[np.random.normal(mean, 2.2) for _ in range(trace_len)] for _ in range(trace_num)])
+        return np.random.normal(mean, 2.2, size=(trace_len, trace_num)).astype(int)
 
 
     def get_mv(x: np.array):
-        return np.moveaxis(np.array((x.mean(axis=0), x.var(axis=0))), 0, -1)
+        return np.array((x.mean(axis=0), x.var(axis=0)))
 
 
-    num_traces = 1000
+    num_traces = 100
+
     ex_a = gen_example(2, num_traces)
     ex_b = gen_example(2, num_traces)
 
     ex_a_s = get_mv(ex_a).shape
 
-    res_sp = 1 - ttest_ind(ex_a, ex_b, axis=0, equal_var=False)[1]
+    res_sp = ttest_ind(ex_a, ex_b, axis=0, equal_var=False)[0]
 
-    test = make_t_test(num_traces, False)
+    test = make_t_test(num_traces)
+    res_custom = test(get_mv(ex_a), get_mv(ex_b))[0]
 
-    res_custom = min(1 - test(get_mv(ex_a), get_mv(ex_b))[1])
+    assert_almost_equal(res_custom, res_sp)

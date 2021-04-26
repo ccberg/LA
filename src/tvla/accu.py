@@ -1,10 +1,14 @@
 import numpy as np
 import psutil
 from numpy.testing import assert_equal, assert_almost_equal
+from scipy.stats import ttest_ind
 
 from tqdm import tqdm
 
-from src.tvla.t import make_t_test
+
+def make_t_test(n):
+    return lambda a, b: ttest_ind(a, b, axis=0, equal_var=False)
+
 
 class TvlaAccu:
     # For future enhancement, __add_batch only has the mean and variance calculated.

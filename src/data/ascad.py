@@ -14,6 +14,8 @@ class TraceCategory:
         self.labels = np.array(trace_category["labels"])
 
         self.hamming_weights = np.array(trace_category["hamming_weights"])
+        self.unmasked_hw = np.array(trace_category["hw_unmasked"])
+
         # 3rd state byte after 1st round SBox
         self.aes_r1b3 = np.array(trace_category["aes_r1b3"])
 
@@ -57,6 +59,12 @@ class TraceCategory:
         Returns the hamming weight labels for the first byte of the first state all traces in this dataset
         """
         return self.hamming_weights[:, self.hw_target_round, self.hw_target_byte]
+
+    def unmasked_labels(self):
+        """
+        Returns the unmasked hamming weight labels for the first byte of the first state all traces in this dataset
+        """
+        return self.unmasked_hw[:, self.hw_target_round, self.hw_target_byte]
 
     def contingency_table(self, label):
         """

@@ -6,6 +6,14 @@ from matplotlib.pyplot import show
 import numpy as np
 
 
+def init_plots():
+    """
+    Sets the correct plot settings for all plots in a notebook.
+    """
+    sns.set_style('whitegrid')
+    plt.rcParams['figure.dpi'] = 300
+
+
 def shadow_plot(lines: dict, **args):
     """
     Plots 2 lines, the second one as a "shadow" line over the first.
@@ -79,7 +87,7 @@ def plot_accu(accu: dict, title: str = "", sub_sample=False):
     plot_p_gradient(dict([(n, np.array(a.p_gradient[:min_len])) for n, a in accu.items()]), title)
 
 
-def plot_p_gradient(gradients: dict, title: str = "", max_traces: int = None):
+def plot_p_gradient(gradients: dict, title: str = "", max_traces: int = None, min_y: float = 10 ** -32):
     """
     Plots p-gradients.
     """
@@ -90,7 +98,7 @@ def plot_p_gradient(gradients: dict, title: str = "", max_traces: int = None):
 
     g = sns.lineplot(data=gradients)
     g.set(yscale="log", ylabel="$p$-value for dist. $A \\neq$ dist. $B$", xlabel="Number of traces",
-          title=title, ylim=(10**-32, 1))
+          title=title, ylim=(min_y, 1))
     g.invert_yaxis()
     g.axhline(10 ** -5, ls='--', color="red")
 

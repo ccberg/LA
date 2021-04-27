@@ -32,7 +32,7 @@ def make_t_test(n: int):
 
 if __name__ == '__main__':
     def gen_example(mean, trace_num, trace_len=1400):
-        return np.random.normal(mean, 2.2, size=(trace_len, trace_num)).astype(int)
+        return np.random.normal(mean, 2.2, size=(trace_num, trace_len)).astype(int)
 
 
     def get_mv(x: np.array):

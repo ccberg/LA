@@ -1,13 +1,10 @@
 import numpy as np
 import psutil
 from numpy.testing import assert_equal, assert_almost_equal
-from scipy.stats import ttest_ind
 
 from tqdm import tqdm
 
-
-def make_t_test(n):
-    return lambda a, b: ttest_ind(a, b, axis=0, equal_var=False)
+from src.tvla.t import make_t_test
 
 
 class TvlaAccu:

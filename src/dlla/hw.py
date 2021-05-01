@@ -84,7 +84,7 @@ def dlla_hw(mdl: Model, x_attack: np.array, y_attack: np.array):
     return get_p_values(l4a, l4b, g4b, stats.ttest_ind)
 
 
-def p_gradient_dl_la(mdl: Model, x_attack: np.array, y_attack: np.array, max_traces: int):
+def p_gradient_dl_la(mdl: Model, x_attack: np.array, y_attack: np.array):
     """
     Creates a gradient of the p-value that predictions for A and B follow the same distribution.
     Class A consists of traces which are labelled with a hamming weight below 4 and class B above 4.
@@ -95,17 +95,15 @@ def p_gradient_dl_la(mdl: Model, x_attack: np.array, y_attack: np.array, max_tra
 
     gradient, inner_gradient = [], []
 
-    nr = min(len(l4b), len(g4b), max_traces)
-    ixs = np.linspace(2, nr, 100).astype(int)
+    nr = min(len(l4b), len(g4b))
 
-    for i in ixs:
+    for i in range(nr):
         pv_ab, pv_aa = get_p_values(l4a[:i], l4b[:i], g4b[:i], stats.ttest_ind)
 
         gradient.append(pv_ab)
         inner_gradient.append(pv_aa)
 
     df = pd.DataFrame({"A vs. B": gradient, "A vs. A": inner_gradient})
-    df = df.set_index(ixs, drop=True)
 
     return df
 

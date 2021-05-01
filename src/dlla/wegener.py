@@ -73,14 +73,17 @@ def dlla_p_gradient_wegener(model: Model, x_attack: np.array, y_attack: np.array
     """
     total = 0
     total_correct = 0
-    res = []
+    p_gradient = []
 
+    min_p = 1.0
     for x, y in zip(model.predict(x_attack), y_attack):
         total += 1
         total_correct += x.argmax() == y.argmax()
-        res.append(binomial_test(total, total_correct))
 
-    return np.array(res)
+        min_p = min(min_p, binomial_test(total, total_correct))
+        p_gradient.append(min_p)
+
+    return np.array(p_gradient)
 
 
 def p_gradient_wegener(a, b):

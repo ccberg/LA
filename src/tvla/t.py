@@ -8,20 +8,19 @@ def make_t_test(n: int):
     """
     Returns a t-test that takes the sample mean and variance for a list of sample points from A, and a list of sample
     points for B.
+
+    n should be larger than 1.
     """
-    n_sqrt = np.sqrt(n)
-    nmm = n - 1
+    def welch_t_test(ma: np.array, va: np.array, mb: np.array, vb: np.array):
+        m = ma - mb
 
-    def welch_t_test(a: np.array, b: np.array):
-        mean_a, var_a = a
-        mean_b, var_b = b
+        sa = va / n
+        sb = vb / n
 
-        m = mean_a - mean_b
-        s = np.sqrt(var_a + var_b) / n_sqrt
+        sab = sa + sb
+        t = m / np.sqrt(sab)
 
-        t = m / s
-
-        dof = (var_a + var_b) ** 2 / ((var_a ** 2 + var_b ** 2) / nmm)
+        dof = n
 
         p = 2 * stats_t(df=dof).cdf(-np.abs(t))
 

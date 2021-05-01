@@ -1,11 +1,12 @@
 import numpy as np
+from matplotlib.pyplot import show
 
 from tqdm import tqdm
-
+import seaborn as sns
+from src.tools.plotter import plot_p_gradient, PALETTE_GRADIENT
 from src.tvla.t import make_t_test
 
 
-# TODO make group
 def central_sum(x, order):
     mean_free = x - x.mean(axis=0)
 
@@ -19,34 +20,58 @@ def central_moment(x, order):
         return central_sum(x, order) / len(x)
 
 
-def sm(x, order):
-    if order == 1:
-        return np.mean(x, axis=0)
-    if order == 2:
-        return central_moment(x, 2)
-    if order > 2:
-        return central_moment(x, order) / (central_moment(x, 2) ** (order / 2))
+class Group:
+    def __init__(self, traces: np.array, max_order=3):
+        self.mean = traces.mean(axis=0)
+        mean_free = traces - self.mean
+
+        max_computed_order = 2 * (max_order + 1)
+
+        self.num_traces, self.trace_len = len(traces), 1
+        if len(traces.shape) == 2:
+            self.num_traces, self.trace_len = traces.shape
+
+        shape = (max_computed_order, self.trace_len)
+
+        self.cm, self.cm2 = np.zeros(shape), np.zeros(shape)
+
+        for order in range(2, max_computed_order):
+            cm = np.sum(mean_free ** order, axis=0) / self.num_traces
+
+            self.cm[order] = cm
+            self.cm2[order] = cm ** 2
+
+    def __sm(self, order):
+        if order == 1:
+            return self.mean
+        if order == 2:
+            return self.cm[2]
+        if order > 2:
+            return self.cm[order] / (self.cm[2] ** (order / 2))
+
+    def __s2(self, order):
+        if order == 1:
+            return self.cm[2]
+        if order == 2:
+            return self.cm[4] - (self.cm2[2])
+        if order > 2:
+            return (self.cm[order * 2] - self.cm2[order]) / (self.cm[2] ** order)
+
+    def t_estimates(self, order):
+        return self.__sm(order), self.__s2(order)
+
+    def t_test(self, other: 'Group', order: int):
+        if self.num_traces <= 2:
+            return np.zeros(self.trace_len), np.ones(self.trace_len)
+
+        t = make_t_test(self.num_traces)
+        return t(*self.t_estimates(order), *other.t_estimates(order))
 
 
-def s2(x, order):
-    if order == 1:
-        return central_moment(x, 2)
-    if order == 2:
-        return central_moment(x, 4) - (central_moment(x, 2) ** 2)
-    if order > 2:
-        return (central_moment(x, order * 2) - (central_moment(x, order) ** 2)) / (central_moment(x, 2) ** order)
-
-
-def order_test(n: int, order: int):
-    t = make_t_test(n)
-
-    def t_test(a: np.array, b: np.array):
-        ma, va = sm(a, order), s2(a, order)
-        mb, vb = sm(b, order), s2(b, order)
-
-        return t(ma, va, mb, vb)
-
-    return t_test
+def peek(a: list, default=None):
+    if a:
+        return a[-1]
+    return default
 
 
 class Tvla:
@@ -54,19 +79,37 @@ class Tvla:
         self.trace_len = trace_len
         self.max_order = max_order
         self.min_p_gradient = dict([(i, []) for i in range(max_order + 1)])
-        self.min_p = np.ones((max_order + 1, trace_len))
+        self.min_p = None
+
+    def __set_min_p(self, a, b):
+        group_a, group_b = Group(a, self.max_order), Group(b, self.max_order)
+        self.min_p = np.ones((self.max_order + 1, self.trace_len))
+
+        min_p_ixs = np.ones(self.max_order + 1, dtype=int)
+        for order in range(1, self.max_order + 1):
+            p_values = group_a.t_test(group_b, order)[1]
+            self.min_p[order] = p_values
+            min_p_ixs[order] = np.argmin(np.nan_to_num(p_values, nan=1.0))
+
+        return min_p_ixs
+
+    def __set_min_p_gradient(self, a, b, min_p_ixs):
+        for order in range(1, self.max_order + 1):
+            for ix in tqdm(range(1, min(len(a), len(b)))):
+                sp_group_a = Group(a[:ix, min_p_ixs[order]], order)
+                sp_group_b = Group(b[:ix, min_p_ixs[order]], order)
+
+                p_value = sp_group_a.t_test(sp_group_b, order)[1][0]
+                min_p_value = min(p_value, peek(self.min_p_gradient[order], 1.0))
+                self.min_p_gradient[order].append(min_p_value)
 
     def add(self, a, b):
-        for ix in tqdm(range(min(len(a), len(b)))):
-            self.min_p_gradient[0].append(1.0)
-            for d in range(1, self.max_order + 1):
-                t = order_test(ix, d)
+        # Copy traces, they will be shuffled.
+        a, b = a.copy(), b.copy()
 
-                if ix > 2:
-                    res = t(a[:ix], b[:ix])[1]
-                    self.min_p[d] = np.minimum(self.min_p[d], res)
-
-                self.min_p_gradient[d].append(min(self.min_p[d]))
+        min_p_ixs = self.__set_min_p(a, b)
+        np.random.shuffle(a), np.random.shuffle(b)
+        self.__set_min_p_gradient(a, b, min_p_ixs)
 
     def __assert_order(self, order):
         if order > self.max_order:
@@ -82,3 +125,17 @@ class Tvla:
 
     def min_p_order(self):
         return [self.min_p_gradient[i][-1] for i in self.min_p_gradient]
+
+    def plot_gradients(self):
+        lines = dict([(f"$\\mu_{{{d}}}$", self.p_gradient(d)) for d in range(1, self.max_order + 1)])
+        plot_p_gradient(lines, "TVLA $p$-gradients for statistical\nmoment orders $\\mu_d$\n", palette=PALETTE_GRADIENT)
+
+    def plot_min_p(self, order):
+        g = sns.lineplot(data={f"$\\mu_{{{order}}}$": self.min_p[order]})
+        sns.lineplot(data={"Threshold": np.ones(len(self.min_p[order])) * 10 ** -5},
+                     palette=["red"], dashes=[(2, 2)])
+        g.set(yscale="log", ylabel="$p$-value for dist. $A \\neq$ dist. $B$", xlabel="Sample point",
+              title=f"Min-$p$ values for $\\mu_{{{order}}}$", ylim=(0, 1))
+
+        g.invert_yaxis()
+        show(block=False)

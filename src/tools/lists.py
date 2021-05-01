@@ -18,3 +18,26 @@ def moving_average(arr: np.array, window=5):
     return res / window
 
 
+def concat(arrays: np.array):
+    return np.concatenate(arrays, axis=0)
+
+
+def random_split(x, fraction):
+    """
+    Splits the given array in two parts.
+    - the first part is approximately of size n * (1 - fraction).
+    - the second part is approximately of size n * fraction.
+    """
+    selection = np.random.random(len(x)) > fraction
+
+    return x[selection], x[np.invert(selection)]
+
+
+def random_divide(x):
+    """
+    Divides the given array in two equally sized parts.
+    """
+    left, right = random_split(x, .5)
+    res_size = min(len(left), len(right))
+
+    return left[:res_size], right[:res_size]

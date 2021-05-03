@@ -97,11 +97,14 @@ def p_gradient_dl_la(mdl: Model, x_attack: np.array, y_attack: np.array):
 
     nr = min(len(l4b), len(g4b))
 
+    min_pv, min_inner_pv = 1.0, 1.0
     for i in range(nr):
         pv_ab, pv_aa = get_p_values(l4a[:i], l4b[:i], g4b[:i], stats.ttest_ind)
 
-        gradient.append(pv_ab)
-        inner_gradient.append(pv_aa)
+        min_pv = min(min_pv, pv_ab)
+        min_inner_pv = min(min_inner_pv, pv_aa)
+        gradient.append(min_pv)
+        inner_gradient.append(min_inner_pv)
 
     df = pd.DataFrame({"A vs. B": gradient, "A vs. A": inner_gradient})
 

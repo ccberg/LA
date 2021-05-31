@@ -1,3 +1,4 @@
+
 import numpy as np
 from matplotlib.pyplot import show
 
@@ -21,7 +22,7 @@ def central_moment(x, order):
 
 
 class Group:
-    def __init__(self, traces: np.array, max_order=3):
+    def __init__(self, traces: np.array, max_order=3, progress=False):
         self.mean = traces.mean(axis=0)
         mean_free = traces - self.mean
 
@@ -35,7 +36,12 @@ class Group:
 
         self.cm, self.cm2 = np.zeros(shape), np.zeros(shape)
 
-        for order in range(2, max_computed_order):
+        computed_orders = range(max_computed_order)
+
+        if progress:
+            computed_orders = tqdm(computed_orders, "Computing Central Moments")
+
+        for order in computed_orders:
             cm = np.sum(mean_free ** order, axis=0) / self.num_traces
 
             self.cm[order] = cm
@@ -75,14 +81,15 @@ def peek(a: list, default=None):
 
 
 class Tvla:
-    def __init__(self, trace_len, max_order=3):
+    def __init__(self, trace_len, max_order=3, gradient_pts=200):
         self.trace_len = trace_len
         self.max_order = max_order
-        self.min_p_gradient = dict([(i, []) for i in range(max_order + 1)])
+        self.min_p_gradient = None
         self.min_p = None
+        self.gradient_pts = gradient_pts
 
     def __set_min_p(self, a, b):
-        group_a, group_b = Group(a, self.max_order), Group(b, self.max_order)
+        group_a, group_b = Group(a, self.max_order, True), Group(b, self.max_order, True)
         self.min_p = np.ones((self.max_order + 1, self.trace_len))
 
         min_p_ixs = np.ones(self.max_order + 1, dtype=int)
@@ -94,14 +101,29 @@ class Tvla:
         return min_p_ixs
 
     def __set_min_p_gradient(self, a, b, min_p_ixs):
-        for order in range(1, self.max_order + 1):
-            for ix in tqdm(range(1, min(len(a), len(b)))):
-                sp_group_a = Group(a[:ix, min_p_ixs[order]], order)
-                sp_group_b = Group(b[:ix, min_p_ixs[order]], order)
+        min_num_traces = min(len(a), len(b))
+        a, b = a.copy(), b.copy()
 
-                p_value = sp_group_a.t_test(sp_group_b, order)[1][0]
-                min_p_value = min(p_value, peek(self.min_p_gradient[order], 1.0))
-                self.min_p_gradient[order].append(min_p_value)
+        self.min_p_gradient = np.ones((self.max_order + 1, min_num_traces * 2))
+
+        for order in tqdm(range(1, self.max_order + 1), "Computing min-p gradients"):
+            selected_a = a[:, min_p_ixs[order]]
+            selected_b = b[:, min_p_ixs[order]]
+
+            calc_pt = round(min_num_traces / min(min_num_traces, self.gradient_pts))
+
+            for trace_ix in range(1, min_num_traces):
+                p_value = None
+                if p_value is None or trace_ix % calc_pt == 0:
+                    sp_group_a = Group(selected_a[:trace_ix], order)
+                    sp_group_b = Group(selected_b[:trace_ix], order)
+
+                    p_value = sp_group_a.t_test(sp_group_b, order)[1][0]
+
+                # 2 Traces are added every iteration.
+                p_value_ix = trace_ix * 2
+                self.min_p_gradient[order, p_value_ix] = p_value
+                self.min_p_gradient[order, p_value_ix + 1] = p_value
 
     def add(self, a, b):
         # Copy traces, they will be shuffled.
@@ -135,7 +157,7 @@ class Tvla:
         sns.lineplot(data={"Threshold": np.ones(len(self.min_p[order])) * 10 ** -5},
                      palette=["red"], dashes=[(2, 2)])
         g.set(yscale="log", ylabel="$p$-value for dist. $A \\neq$ dist. $B$", xlabel="Sample point",
-              title=f"Min-$p$ values for $\\mu_{{{order}}}$", ylim=(0, 1))
+              title=f"Min-$p$ values for $\\mu_{{{order}}}$", ylim=(None, 1))
 
         g.invert_yaxis()
         show(block=False)

@@ -22,6 +22,16 @@ def concat(arrays: np.array):
     return np.concatenate(arrays, axis=0)
 
 
+def randomize(x):
+    """
+    Shuffles a copy of the provided array.
+    """
+    x = x.copy()
+    np.random.shuffle(x)
+
+    return x
+
+
 def random_split(x, fraction):
     """
     Splits the given array in two parts.

@@ -1,10 +1,12 @@
 import numpy as np
 from scipy.special import comb
-from scipy.stats import norm
+from scipy.stats import norm, ttest_ind
 from tensorflow.python.keras import Sequential
 from tensorflow.python.keras.layers import Dense
 from tensorflow.python.keras.models import Model
 from tensorflow.python.keras.optimizer_v2.adam import Adam
+from tensorflow.python.keras.utils.np_utils import to_categorical
+from tqdm import tqdm
 
 from src.dlla.preparation import prepare_dlla, labelize
 
@@ -67,7 +69,7 @@ def make_mlp_wegener(x, y, x_attack, y_attack):
     return mdl
 
 
-def dlla_p_gradient_wegener(model: Model, x_attack: np.array, y_attack: np.array):
+def wegener_p_gradient(model: Model, x_attack: np.array, y_attack: np.array):
     """
     Retrieves a p-gradient from applying the trained model on the attack trace set.
     """
@@ -75,18 +77,51 @@ def dlla_p_gradient_wegener(model: Model, x_attack: np.array, y_attack: np.array
     total_correct = 0
     p_gradient = []
 
-    min_p = 1.0
-    for x, y in zip(model.predict(x_attack), y_attack):
-        total += 1
-        total_correct += x.argmax() == y.argmax()
+    predictions = model.predict(x_attack).argmax(axis=1)
+    labels = y_attack.argmax(axis=1)
+    correct = np.array(predictions == labels)
 
-        min_p = min(min_p, binomial_test(total, total_correct))
-        p_gradient.append(min_p)
+    num_predictions = len(predictions)
+    num_pts = 200000
+
+    calc_pt = round(num_predictions / min(num_pts, num_predictions))
+
+    p_value = 1.0
+    for ix in range(num_predictions):
+        total += 1
+        total_correct += correct[ix]
+
+        if ix % calc_pt == 0:
+            p_value = binomial_test(total, total_correct)
+        p_gradient.append(p_value)
 
     return np.array(p_gradient)
 
 
-def p_gradient_wegener(a, b):
+def wegener_t_test_p_gradient(model: Model, x_attack: np.array, y_attack: np.array):
+    """
+    Retrieves a p-gradient from applying the trained model on the attack trace set.
+    """
+    p_gradient = []
+
+    predictions = np.average(model.predict(x_attack), axis=1, weights=range(2))
+    labels = np.argmax(y_attack, axis=1).astype(bool)
+
+    a = predictions[labels]
+    b = predictions[~labels]
+
+    num_predictions = len(predictions)
+
+    p_value = 1.0
+    for ix in tqdm(range(0, num_predictions)):
+        if ix > 1:
+            p_value = ttest_ind(a[:ix], b[:ix])[1]
+        p_gradient.append(p_value)
+
+    return np.array(p_gradient)
+
+
+def wegener_performance(a, b):
     """
     Labels and z-normalizes traces, trains a MLP (as shown in the DL-LA paper).
     Returns the p-gradient for the attack traces
@@ -94,4 +129,32 @@ def p_gradient_wegener(a, b):
     dlla_traces = prepare_dlla(*labelize((a, b)))
     dlla_model = make_mlp_wegener(*dlla_traces)
 
-    return dlla_p_gradient_wegener(dlla_model, *dlla_traces[2:])
+    return wegener_p_gradient(dlla_model, *dlla_traces[2:])
+
+
+def balance(x, y):
+    y_num = np.argmax(y, axis=1).astype(bool)
+
+    imbalance = len(y) - 2 * np.sum(y_num)
+    if imbalance < 0:
+        ixs = np.where(y_num)[0]
+    else:
+        ixs = np.where(~y_num)[0]
+
+    np.random.shuffle(ixs)
+    drop_ixs = ixs[:abs(imbalance)]
+
+    return np.delete(x, drop_ixs, axis=0), np.delete(y, drop_ixs, axis=0)
+
+
+def class_reduction(x, y):
+    """
+    Takes 9-class (categorical) hamming weight labels and reduces it to 2 classes.
+    """
+    numerical = y.argmax(axis=1)
+    filter_ixs = numerical != 4
+
+    numerical_reduced = numerical[filter_ixs] > 4
+    y2 = to_categorical(numerical_reduced).astype(np.int8)
+
+    return balance(x[filter_ixs], y2)

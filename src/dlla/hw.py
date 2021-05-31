@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -84,7 +83,7 @@ def dlla_hw(mdl: Model, x_attack: np.array, y_attack: np.array):
     return get_p_values(l4a, l4b, g4b, stats.ttest_ind)
 
 
-def p_gradient_dl_la(mdl: Model, x_attack: np.array, y_attack: np.array):
+def dlla_p_gradient(mdl: Model, x_attack: np.array, y_attack: np.array):
     """
     Creates a gradient of the p-value that predictions for A and B follow the same distribution.
     Class A consists of traces which are labelled with a hamming weight below 4 and class B above 4.
@@ -97,14 +96,11 @@ def p_gradient_dl_la(mdl: Model, x_attack: np.array, y_attack: np.array):
 
     nr = min(len(l4b), len(g4b))
 
-    min_pv, min_inner_pv = 1.0, 1.0
     for i in range(nr):
-        pv_ab, pv_aa = get_p_values(l4a[:i], l4b[:i], g4b[:i], stats.ttest_ind)
+        p_value, inner_p_value = get_p_values(l4a[:i], l4b[:i], g4b[:i], stats.ttest_ind)
 
-        min_pv = min(min_pv, pv_ab)
-        min_inner_pv = min(min_inner_pv, pv_aa)
-        gradient.append(min_pv)
-        inner_gradient.append(min_inner_pv)
+        gradient.append(p_value)
+        inner_gradient.append(inner_p_value)
 
     df = pd.DataFrame({"A vs. B": gradient, "A vs. A": inner_gradient})
 
@@ -132,7 +128,7 @@ def plot_gradient(mdl: Model, x_attack: np.array, y_attack: np.array, max_traces
     Plots the min-p gradient for the probability that predictions for classes
     A (HW < 4) and B (HW > 4) are of the same distribution.
     """
-    g = sns.lineplot(data=p_gradient_dl_la(mdl, x_attack, y_attack, max_traces))
+    g = sns.lineplot(data=dlla_p_gradient(mdl, x_attack, y_attack, max_traces))
     g.set(yscale="log", xlabel="Samples", ylabel="$p$-value",
           title="Attack trace predictions, $p$-gradient.\n A: $HW < 4$. B: $HW > 4$")
     g.invert_yaxis()

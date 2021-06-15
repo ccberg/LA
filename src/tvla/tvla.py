@@ -36,7 +36,7 @@ class Group:
 
         self.cm, self.cm2 = np.zeros(shape), np.zeros(shape)
 
-        computed_orders = range(max_computed_order)
+        computed_orders = np.unique([*range(max_order + 1), *(2 * np.arange(max_order + 1))])
 
         if progress:
             computed_orders = tqdm(computed_orders, "Computing Central Moments")
@@ -110,15 +110,11 @@ class Tvla:
             selected_a = a[:, min_p_ixs[order]]
             selected_b = b[:, min_p_ixs[order]]
 
-            calc_pt = round(min_num_traces / min(min_num_traces, self.gradient_pts))
-
             for trace_ix in range(1, min_num_traces):
-                p_value = None
-                if p_value is None or trace_ix % calc_pt == 0:
-                    sp_group_a = Group(selected_a[:trace_ix], order)
-                    sp_group_b = Group(selected_b[:trace_ix], order)
+                sp_group_a = Group(selected_a[:trace_ix], order)
+                sp_group_b = Group(selected_b[:trace_ix], order)
 
-                    p_value = sp_group_a.t_test(sp_group_b, order)[1][0]
+                p_value = sp_group_a.t_test(sp_group_b, order)[1][0]
 
                 # 2 Traces are added every iteration.
                 p_value_ix = trace_ix * 2

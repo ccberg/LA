@@ -5,6 +5,21 @@ from pandas import DataFrame as Df
 from matplotlib.pyplot import show
 import numpy as np
 
+from src.tools.file import make_dirs
+
+
+def store(g, file_name: str):
+    """
+    Stores a plot figure, if a file name is given.
+    File name should be without file extension.
+    """
+    img_root = "img"
+    if file_name is not None:
+        img_path = f"{img_root}/{file_name}.png"
+
+        make_dirs(img_path)
+        g.figure.savefig(img_path)
+
 
 def init_plots():
     """
@@ -91,11 +106,11 @@ PALETTE_GRADIENT = "mako"
 
 
 def plot_p_gradient(gradients: dict, title: str = "", max_traces: int = None, min_y: float = 10 ** -32,
-                    palette=None):
+                    palette=None, file_name=None):
     """
-    Plots p-gradients.
+    Plots p-gradients. Supply a file name if the file should be stored.
     """
-    sns.set_style('whitegrid')
+    init_plots()
 
     max_len = 0
     for k in gradients:
@@ -111,3 +126,4 @@ def plot_p_gradient(gradients: dict, title: str = "", max_traces: int = None, mi
     g.invert_yaxis()
 
     show(block=False)
+    store(g, file_name)

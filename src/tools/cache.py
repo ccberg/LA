@@ -1,28 +1,13 @@
-import errno
 import os
+import pickle as pkl
+
 import numpy as np
 
-from src.tools.constants import ROOT_DIR
-import pickle as pkl
+from src.tools.file import make_dirs
 
 
 def get_cache_loc():
     return f"./.cache"
-
-
-def mkdir_suppress_exist(dirname):
-    try:
-        os.mkdir(dirname)
-    except OSError as exc:
-        if exc.errno != errno.EEXIST:
-            raise
-        pass
-
-
-def make_dirs(file_name):
-    dir_name = os.path.dirname(file_name)
-    if not os.path.exists(dir_name):
-        os.makedirs(dir_name)
 
 
 def cache_np(name, f=None, *args, v=1, replace=False):

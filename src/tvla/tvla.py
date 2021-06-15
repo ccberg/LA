@@ -70,7 +70,7 @@ class Group:
         if self.num_traces <= 2:
             return np.zeros(self.trace_len), np.ones(self.trace_len)
 
-        t = make_t_test(self.num_traces)
+        t = make_t_test(self.num_traces, other.num_traces)
         return t(*self.t_estimates(order), *other.t_estimates(order))
 
 

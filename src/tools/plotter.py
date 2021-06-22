@@ -8,7 +8,7 @@ import numpy as np
 from src.tools.file import make_dirs
 
 
-def store(g, file_name: str):
+def store_sns(g, file_name: str):
     """
     Stores a plot figure, if a file name is given.
     File name should be without file extension.
@@ -126,4 +126,4 @@ def plot_p_gradient(gradients: dict, title: str = "", max_traces: int = None, mi
     g.invert_yaxis()
 
     show(block=False)
-    store(g, file_name)
+    store_sns(g, file_name)

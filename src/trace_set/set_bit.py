@@ -3,7 +3,7 @@ import os
 from src.trace_set.abstract import AbstractTraceSet
 
 
-class LATraceSet(AbstractTraceSet):
+class TraceSetBit(AbstractTraceSet):
     type = "la"
 
     def create(self, profile_traces, profile_la_bit, attack_traces, attack_la_bit):

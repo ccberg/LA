@@ -3,7 +3,7 @@ import os
 from src.trace_set.abstract import AbstractTraceSet
 
 
-class TraceSet(AbstractTraceSet):
+class TraceSetHW(AbstractTraceSet):
     type = "generic"
 
     def create(self, profile_traces, profile_hw, attack_traces, attack_hw):

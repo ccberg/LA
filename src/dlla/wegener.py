@@ -5,7 +5,6 @@ from tensorflow.python.keras import Sequential
 from tensorflow.python.keras.layers import Dense
 from tensorflow.python.keras.models import Model
 from tensorflow.python.keras.optimizer_v2.adam import Adam
-from tensorflow.python.keras.utils.np_utils import to_categorical
 from tqdm import tqdm
 
 from src.dlla.preparation import prepare_dlla, labelize
@@ -131,30 +130,3 @@ def wegener_performance(a, b):
 
     return wegener_p_gradient(dlla_model, *dlla_traces[2:])
 
-
-def balance(x, y):
-    y_num = np.argmax(y, axis=1).astype(bool)
-
-    imbalance = len(y) - 2 * np.sum(y_num)
-    if imbalance < 0:
-        ixs = np.where(y_num)[0]
-    else:
-        ixs = np.where(~y_num)[0]
-
-    np.random.shuffle(ixs)
-    drop_ixs = ixs[:abs(imbalance)]
-
-    return np.delete(x, drop_ixs, axis=0), np.delete(y, drop_ixs, axis=0)
-
-
-def class_reduction(x, y):
-    """
-    Takes 9-class (categorical) hamming weight labels and reduces it to 2 classes.
-    """
-    numerical = y.argmax(axis=1)
-    filter_ixs = numerical != 4
-
-    numerical_reduced = numerical[filter_ixs] > 4
-    y2 = to_categorical(numerical_reduced).astype(np.int8)
-
-    return balance(x[filter_ixs], y2)

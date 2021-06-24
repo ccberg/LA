@@ -4,7 +4,7 @@ from src.trace_set.abstract import AbstractTraceSet
 
 
 class TraceSetBit(AbstractTraceSet):
-    type = "la"
+    type = "bit"
 
     def create(self, profile_traces, profile_la_bit, attack_traces, attack_la_bit):
         root_dir = os.path.dirname(self.path)

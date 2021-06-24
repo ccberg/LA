@@ -4,7 +4,7 @@ from src.trace_set.abstract import AbstractTraceSet
 
 
 class TraceSetHW(AbstractTraceSet):
-    type = "generic"
+    type = "hw"
 
     def create(self, profile_traces, profile_hw, attack_traces, attack_hw):
         root_dir = os.path.dirname(self.path)

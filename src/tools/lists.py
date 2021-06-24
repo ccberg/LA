@@ -51,3 +51,12 @@ def random_divide(x):
     res_size = min(len(left), len(right))
 
     return left[:res_size], right[:res_size]
+
+
+def find(a: np.array, b: np.array):
+    """
+    Finds the starting index of b within a.
+    b should be present in a, otherwise this will cause an error.
+    """
+    potential_ixs = np.where(a[:-len(b)] == b[0])[0]
+    return [x for x in potential_ixs if np.all(a[x:x + len(b)] == b)][0]

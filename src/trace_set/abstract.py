@@ -1,44 +1,18 @@
-import math
 import os
-from enum import Enum
 
 import h5py
 import numpy as np
 
 from src.tools.constants import DATA_DIR
+from src.trace_set.database import Database
+from src.trace_set.pollution import Pollution
 
 
-class PollutionType(Enum):
-    jitter = "jitter"
-    desync = "desync"
-
-
-class Pollution:
-    def __init__(self, pollution_type: PollutionType, parameter: float):
-        self.type = pollution_type
-        self.parameter = parameter
-
-    def get_name(self):
-        param = math.modf(self.parameter)
-        param_name = str(int(param[1]))
-        if param[0] > 0:
-            param_name += f"-{str(int(param[0] * 100))}"
-
-        return f"{self.type.name}_{param_name}"
-
-
-class Database(Enum):
-    ascad = "ascad"
-    aisy = "aisy"
-
-
-class TraceSet:
-    class Column(Enum):
-        traces = "traces"
-        hamming_weight = "hamming_weight"
+class AbstractTraceSet:
+    type = None
 
     def __init__(self, database: Database, pollution: Pollution = None):
-        dir_root = os.path.join(DATA_DIR, database.name, "generic")
+        dir_root = os.path.join(DATA_DIR, database.name, self.get_type())
         self.h5 = None
 
         if pollution is None:
@@ -47,6 +21,12 @@ class TraceSet:
             self.name = pollution.get_name()
 
         self.path = os.path.join(dir_root, f"{self.name}.h5")
+
+    def get_type(self):
+        if self.type is None:
+            raise NotImplementedError()
+        else:
+            return self.type
 
     def open(self, permission="r"):
         if self.h5 is None:
@@ -82,9 +62,6 @@ class TraceSet:
                 raise TypeError(f"No root group for numpy array to fit in.", )
         else:
             raise TypeError(f"Unable to put {t} in h5 file.", )
-
-    def fixed_fixed(self):
-        raise NotImplementedError()
 
     def fixed_random(self):
         raise NotImplementedError()

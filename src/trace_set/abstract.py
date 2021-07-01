@@ -45,26 +45,30 @@ class AbstractTraceSet:
         self.h5 = None
 
     def add(self, data, name: str = None, group=None):
-        t = type(data)
-        if t is dict:
+        if type(data) is dict:
             for group_name, group_data in data.items():
-                if group is None:
-                    group = self.h5.require_group(group_name)
+                t = type(group_data)
+                if t is dict:
+                    if group is None:
+                        self.add(group_data, group_name, self.h5.require_group(group_name))
+                    else:
+                        self.add(group_data, group_name, group.require_group(group_name))
+                elif t is np.ndarray:
+                    if group is not None:
+                        if group_name in group:
+                            del group[group_name]
 
-                self.add(group_data, group_name, group)
-        elif t is np.ndarray:
-            if group is not None:
-                if name in group:
-                    del group[name]
-
-                group[name] = data
-            else:
-                raise TypeError(f"No root group for numpy array to fit in.", )
+                        group.create_dataset(group_name, data=group_data)
+                    else:
+                        raise TypeError(f"No root group for numpy array to fit in.", )
+                else:
+                    raise TypeError(f"Unable to put {t} in h5 file.", )
         else:
-            raise TypeError(f"Unable to put {t} in h5 file.", )
+            raise TypeError(f"No root group for data to fit in.", )
 
-    def fixed_random(self):
+    def fixed_random(self, test):
         raise NotImplementedError()
 
-    def random_random(self):
+    def random_random(self, test):
         raise NotImplementedError()
+

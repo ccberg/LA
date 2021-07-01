@@ -58,4 +58,4 @@ def chi_squared(observed, expected):
 
 
 def chi2(lefts, rights, p):
-    return np.array([chi_squared(l, r) for l, r in zip(lefts, rights)]) > p
+    return np.array([chi_squared(l, r) for (l, r) in zip(lefts, rights)]) > p

@@ -1,6 +1,9 @@
 import os
 
+import numpy as np
+
 from src.trace_set.abstract import AbstractTraceSet
+from src.trace_set.database import Database
 
 
 class TraceSetHW(AbstractTraceSet):
@@ -27,11 +30,17 @@ class TraceSetHW(AbstractTraceSet):
 
         self.close()
 
-    def fixed_fixed(self):
+    def fixed_fixed(self, test):
         pass
 
-    def fixed_random(self):
+    def fixed_random(self, test):
         pass
 
-    def random_random(self):
+    def random_random(self, test):
         pass
+
+
+if __name__ == '__main__':
+    TraceSetHW(Database.ascad).create(
+        np.ones(1), np.ones(1), np.ones(1), np.ones(1)
+    )

@@ -5,20 +5,17 @@ from pandas import DataFrame as Df
 from matplotlib.pyplot import show
 import numpy as np
 
-from src.tools.file import make_dirs
+from src.tools.file import make_dirs, get_plot_path
 
 
-def store_sns(g, file_name: str):
+def store_sns(g, image_name: str):
     """
     Stores a plot figure, if a file name is given.
     File name should be without file extension.
     """
-    img_root = "img"
-    if file_name is not None:
-        img_path = f"{img_root}/{file_name}.png"
-
-        make_dirs(img_path)
-        g.figure.savefig(img_path)
+    if image_name is not None:
+        img_path = get_plot_path(image_name)
+        g.figure.savefig(img_path, format="svg")
 
 
 def init_plots():
@@ -121,7 +118,7 @@ def plot_p_gradient(gradients: dict, title: str = "", max_traces: int = None, mi
     sns.lineplot(data={"Threshold": np.ones(max_len) * 10 ** -5},
                  palette=["red"], dashes=[(2, 2)])
 
-    g.set(yscale="log", ylabel="$p$-value for dist. $A \\neq$ dist. $B$", xlabel="Number of traces",
+    g.set(yscale="log", ylabel="$p$-value for dist. $A \\neq$ dist. $B$", xlabel="Number of attack traces",
           title=title, ylim=(min_y, 1))
     g.invert_yaxis()
 

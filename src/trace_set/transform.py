@@ -4,15 +4,17 @@ from src.tools.balance import balance
 from tensorflow.python.keras.utils.np_utils import to_categorical
 
 
+# TODO replace with mlp_hw notebook variants
+
 def reduce_fixed_fixed(x, y):
     """
     Takes 9-class (categorical) hamming weight labels and reduces it to 2 semi-fixed classes.
     """
-    numerical = y.argmax(axis=1)
-    filter_ixs = numerical != 4
+    hamming_weight = np.argmax(y, axis=1)
+    filter_ixs = hamming_weight != 4
 
-    numerical_reduced = numerical[filter_ixs] > 4
-    y2 = to_categorical(numerical_reduced).astype(np.int8)
+    is_high = hamming_weight[filter_ixs] > 4
+    y2 = to_categorical(is_high).astype(np.int8)
 
     return balance(x[filter_ixs], y2)
 
@@ -21,10 +23,10 @@ def reduce_fixed_random(x, y):
     """
     Takes 9-class (categorical) hamming weight labels and reduces it to 2 classes: semi-fixed and random.
     """
-    numerical = y.argmax(axis=1)
-    filter_ixs = numerical != 4
+    hamming_weight = np.argmax(y, axis=1)
+    is_random = np.random.binomial(1, .5, len(x)).astype(bool)
+    y2 = to_categorical(is_random).astype(np.int8)
 
-    numerical_reduced = numerical[filter_ixs] > 4
-    y2 = to_categorical(numerical_reduced).astype(np.int8)
+    filter_ixs = np.logical_or(hamming_weight < 4, is_random)
 
-    return balance(x[filter_ixs], y2)
+    return balance(x[filter_ixs], y2[filter_ixs])

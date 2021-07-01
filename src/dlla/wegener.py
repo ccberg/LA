@@ -48,7 +48,7 @@ def binomial_test(validation_size, num_correct):
     return p_value
 
 
-def make_mlp_wegener(x, y, x_attack, y_attack):
+def make_mlp_wegener(x, y, verbose=True):
     """
     Create a Multi Layer Perceptron model as described in the paper.
     """
@@ -60,10 +60,9 @@ def make_mlp_wegener(x, y, x_attack, y_attack):
     mdl.add(Dense(50, activation='relu'))
     mdl.add(Dense(2, activation='softmax'))
 
-    mdl.compile(optimizer=Adam(lr=0.001), loss='mse', metrics='accuracy')
+    mdl.compile(optimizer=Adam(learning_rate=0.001), loss='mse', metrics='accuracy')
 
-    mdl.fit(x, y, shuffle=True, validation_data=(x_attack, y_attack), batch_size=150,
-            epochs=5, verbose=True)
+    mdl.fit(x, y, shuffle=True, batch_size=150, epochs=5, verbose=verbose)
 
     return mdl
 
@@ -126,7 +125,7 @@ def wegener_performance(a, b):
     Returns the p-gradient for the attack traces
     """
     dlla_traces = prepare_dlla(*labelize((a, b)))
-    dlla_model = make_mlp_wegener(*dlla_traces)
+    dlla_model = make_mlp_wegener(*dlla_traces[:2])
 
     return wegener_p_gradient(dlla_model, *dlla_traces[2:])
 

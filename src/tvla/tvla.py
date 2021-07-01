@@ -148,12 +148,14 @@ class Tvla:
         lines = dict([(f"$\\mu_{{{d}}}$", self.p_gradient(d)) for d in range(1, self.max_order + 1)])
         plot_p_gradient(lines, "TVLA $p$-gradients for statistical\nmoment orders $\\mu_d$\n", palette=PALETTE_GRADIENT)
 
-    def plot_min_p(self, order):
+    def plot_p_values(self, order):
         g = sns.lineplot(data={f"$\\mu_{{{order}}}$": self.min_p[order]})
         sns.lineplot(data={"Threshold": np.ones(len(self.min_p[order])) * 10 ** -5},
                      palette=["red"], dashes=[(2, 2)])
         g.set(yscale="log", ylabel="$p$-value for dist. $A \\neq$ dist. $B$", xlabel="Sample point",
-              title=f"Min-$p$ values for $\\mu_{{{order}}}$", ylim=(None, 1))
+              title=f"$p$ values for $\\mu_{{{order}}}$", ylim=(None, 1))
 
         g.invert_yaxis()
         show(block=False)
+
+        return g

@@ -11,5 +11,9 @@ def make_dirs(file_name):
         os.makedirs(dir_name)
 
 
+def get_plot_path(image_name):
+    return os.path.join(REPORT_IMAGE_DIR, f'{image_name}.svg')
+
+
 def store_plt(image_name):
-    plt.savefig(os.path.join(REPORT_IMAGE_DIR, f'{image_name}.png'))
+    plt.savefig(get_plot_path(image_name), format="svg")

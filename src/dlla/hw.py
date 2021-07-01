@@ -10,32 +10,29 @@ from src.data.ascad import TraceGroup
 NUM_CLASSES = 9  # Byte ranges from 00 (HW = 0) to FF (HW = 8), resulting in 9 classes for HW.
 
 
-def encode(y):
+def encode(y, num_classes=NUM_CLASSES):
     """
     One-hot encode labels
     """
-    return to_categorical(y, num_classes=NUM_CLASSES)
+    return to_categorical(y, num_classes=num_classes)
 
 
-def prepare_traces(profile, attack):
+def prepare_traces_dl(x, y, x_att, y_att):
     """
     Normalizes the traces, one-hot encodes the labels.
     Returns profiling traces, labels and attack traces, labels.
     """
+    prof_mean, prof_std = x.mean(axis=0), x.std(axis=0)
+    norm_x = (x - prof_mean) / prof_std
+    norm_x_att = (x_att - prof_mean) / prof_std
 
-    # Normalize traces
-    prof_mean, prof_std = profile[0].mean(axis=0), profile[0].std(axis=0)
-    x_prof = (profile[0] - prof_mean) / prof_std
-    x_att = (attack[0] - prof_mean) / prof_std
-
-    return x_prof, encode(profile[1]), x_att, encode(attack[1])
+    return norm_x, encode(y), norm_x_att, encode(y_att)
 
 
 def fetch_traces(tg: TraceGroup):
-    profile = tg.profile.traces, tg.profile.hw_labels()
-    attack = tg.attack.traces, tg.attack.hw_labels()
+    profile, attack = tg.profile, tg.attack
 
-    return prepare_traces(profile, attack)
+    return prepare_traces_dl(profile.traces, profile.hw_labels(), attack.traces, attack.hw_labels())
 
 
 def hamming_weight_prediction(mdl: Model, x: np.array, num_rows=None):
@@ -121,6 +118,8 @@ def plot_predictions(mdl: Model, x_attack: np.array, y_attack: np.array):
     }, bins=80, binrange=(0, 8))
     g.set(xlabel="Predicted hamming weight, bin size = 0.1",
           title=f"Attack trace predictions for {num_all} sample traces.")
+
+    return g
 
 
 def plot_gradient(mdl: Model, x_attack: np.array, y_attack: np.array, max_traces=500):

@@ -55,7 +55,7 @@ class TvlaAccu:
 
         batch_ixs = range(int(self.n == 0), batch_size)
         if self.show_progress:
-            batch_ixs = tqdm(batch_ixs, desc="Running t-tests")
+            batch_ixs = tqdm(batch_ixs, desc="Running t-test")
 
         for i in batch_ixs:
             stat_test = self.make_test(self.n + i + 1)

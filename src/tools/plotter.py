@@ -1,11 +1,11 @@
-import seaborn as sns
+import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
-
-from pandas import DataFrame as Df
-from matplotlib.pyplot import show
 import numpy as np
+import seaborn as sns
+from matplotlib.pyplot import show
+from pandas import DataFrame as Df
 
-from src.tools.file import make_dirs, get_plot_path
+from src.tools.file import get_plot_path
 
 
 def store_sns(g, image_name: str):
@@ -64,9 +64,16 @@ def line_plot_poi(lines: dict, poi: list, poi_alpha=.3, **args):
 
     fig, ax = plt.subplots()
     sns.lineplot(data=Df(lines)).set(**args)
+    highlight = sns.color_palette()[3]
 
     for a, b in poi:
-        ax.axvspan(a, b, alpha=poi_alpha, color=sns.color_palette()[3])
+        ax.axvspan(a, b, alpha=poi_alpha, color=highlight)
+
+    handles, labels = ax.get_legend_handles_labels()
+    handles.append(mpatches.Patch(facecolor=highlight, alpha=poi_alpha))
+    labels.append("Point of Interest")
+
+    ax.legend(handles=handles, labels=labels)
 
     plt.show()
 

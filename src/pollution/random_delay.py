@@ -14,7 +14,7 @@ def random_delay(traces: np.ndarray, a: int, b: int, delay_amplitude: int, delay
 
     assert a >= b
 
-    for ix, trace in tqdm(enumerate(traces), total=num_traces, desc="Random delay"):
+    for ix, trace in tqdm(enumerate(traces), total=num_traces, desc=f"Random delay ({delay_probability})"):
         sp_old, sp_new = 0, 0
 
         # Computing (too much) random variables all at once yields >2x speed increase.

@@ -5,22 +5,18 @@ from tqdm import tqdm
 from src.pollution.tools import windowed
 
 
-def clock_jitter(raw_traces: np.ndarray, window: (int, int), clock_range: int):
-    """
-    Based on the implementation of L. Wu & S. Picek (2020): "Remove Some Noise: On Pre-processing of Side-channel
-        Measurements with Autoencoders."
-    """
+def clock_jitter(raw_traces: np.ndarray, window: (int, int), clock_var: float):
     traces, win_size = windowed(raw_traces, window)
     num_traces, trace_length = traces.shape
 
     res = np.zeros_like(traces)
     min_trace_len = trace_length
 
-    for ix, trace in tqdm(enumerate(traces), total=num_traces, desc="Clock jitter"):
+    for ix, trace in tqdm(enumerate(traces), total=num_traces, desc=f"Clock jitter ({clock_var})"):
         sp_old, sp_new = 0, 0
 
         # Computing (too much) random variables all at once yields a ~1.5x speed increase.
-        jitters = random.randint(-clock_range, clock_range + 1, size=trace_length)
+        jitters = random.normal(scale=clock_var, size=trace_length).astype(int)
 
         while sp_new < trace_length and sp_old < trace_length:
             r = jitters[sp_new]

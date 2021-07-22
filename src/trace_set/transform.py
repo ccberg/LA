@@ -30,3 +30,13 @@ def reduce_fixed_random(x, y):
     filter_ixs = np.logical_or(hamming_weight < 4, is_random)
 
     return balance(x[filter_ixs], y2[filter_ixs])
+
+
+def fixed_fixed(x: np.ndarray, hw: np.ndarray):
+    """
+    Takes 9-class (integer) hamming weight labels and reduces it to 2 semi-fixed integer classes.
+    """
+    leakage_bit = hw > 4
+    drop_mask = hw != 4
+
+    return x[drop_mask], leakage_bit[drop_mask]

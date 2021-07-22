@@ -6,6 +6,8 @@ from enum import Enum, unique
 class PollutionType(Enum):
     jitter = "jitter"
     desync = "desync"
+    delay = "delay"
+    gauss = "gauss"
 
 
 class Pollution:

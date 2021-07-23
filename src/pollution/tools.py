@@ -1,6 +1,10 @@
 import numpy as np
 
 
+def max_data(traces: np.ndarray):
+    return np.iinfo(traces.dtype).max
+
+
 def windowed(raw_traces: np.ndarray, window: (int, int), calculate_win=2):
     wa, wb = window
     win_size = wb - wa

@@ -6,6 +6,10 @@ from src.pollution.tools import windowed
 
 
 def clock_jitter(raw_traces: np.ndarray, window: (int, int), clock_var: float):
+    """
+    Based on the implementation of L. Wu & S. Picek (2020): "Remove Some Noise: On Pre-processing of Side-channel
+        Measurements with Autoencoders."
+    """
     traces, win_size = windowed(raw_traces, window)
     num_traces, trace_length = traces.shape
 

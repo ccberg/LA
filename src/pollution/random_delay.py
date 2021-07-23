@@ -2,6 +2,8 @@ import numpy as np
 from numpy import random
 from tqdm import tqdm
 
+from src.pollution.tools import max_data
+
 
 def random_delay(traces: np.ndarray, a: int, b: int, delay_amplitude: int, delay_probability=.5):
     """
@@ -10,9 +12,12 @@ def random_delay(traces: np.ndarray, a: int, b: int, delay_amplitude: int, delay
     """
     res = np.zeros_like(traces)
     num_traces, trace_length = traces.shape
-    max_sp_value = np.iinfo(np.int8).max
 
-    assert a >= b
+    max_sp = np.max(traces)
+    norm_factor = max_data(traces) / (max_sp + delay_amplitude)
+    if norm_factor < 1:
+        traces = np.array(norm_factor * traces, dtype=traces.dtype)
+        delay_amplitude *= norm_factor
 
     for ix, trace in tqdm(enumerate(traces), total=num_traces, desc=f"Random delay ({delay_probability})"):
         sp_old, sp_new = 0, 0
@@ -34,8 +39,9 @@ def random_delay(traces: np.ndarray, a: int, b: int, delay_amplitude: int, delay
                     if sp_new + 3 > trace_length:
                         continue
 
-                    spike = min(trace[sp_old] + delay_amplitude, max_sp_value)
-                    res[ix, sp_new:sp_new + 3] = [trace[sp_old], spike, trace[sp_old + 1]]
+                    spike = trace[sp_old] + delay_amplitude
+                    delay_sequence = [trace[sp_old], spike, trace[sp_old + 1]]
+                    res[ix, sp_new:sp_new + 3] = delay_sequence
                     sp_new += 3
 
     return res

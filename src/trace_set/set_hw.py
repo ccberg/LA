@@ -2,6 +2,7 @@ import os
 
 import numpy as np
 
+from src.data.preprocess.hw import hamming_weights
 from src.trace_set.abstract import AbstractTraceSet
 from src.trace_set.database import Database
 from src.trace_set.pollution import Pollution
@@ -15,7 +16,7 @@ class TraceSetHW(AbstractTraceSet):
 
         self.profile_limit, self.attack_limit = limits
 
-    def create(self, profile_traces, profile_hw, attack_traces, attack_hw):
+    def create(self, profile_traces, profile_sb, attack_traces, attack_sb):
         root_dir = os.path.dirname(self.path)
 
         if not os.path.exists(root_dir):
@@ -26,31 +27,63 @@ class TraceSetHW(AbstractTraceSet):
         self.add({
             "profile": {
                 "traces": profile_traces,
-                "hw": profile_hw
+                "state_byte": profile_sb
             },
             "attack": {
                 "traces": attack_traces,
-                "hw": attack_hw
+                "state_byte": attack_sb
             }
         })
 
         self.close()
 
-    def __fetch(self, group_name: str, limit: int):
+    def __states(self, group_name: str, limit: int):
+        """
+        Returns the AES states corresponding to the labels of this trace set.
+        """
         f = self.open('r')
 
         grp = f[group_name]
-        res = np.array(grp['traces'][:limit]), np.array(grp['hw'][:limit])
+        traces = np.array(grp['traces'][:limit])
+        states = np.array(grp['state_byte'][:limit])
 
         self.close()
 
-        return res
+        return traces, states
+
+    def __meta(self, group_name: str, limit: int):
+        f = self.open('r')
+
+        grp = f[group_name]
+        plain = np.array(grp['plaintext_byte'][:limit])
+        key = np.array(grp['key_byte'][:limit])
+
+        self.close()
+
+        return plain, key
+
+    def __hw(self, group_name: str, limit: int):
+        traces, states = self.__states(group_name, limit)
+
+        return traces, hamming_weights(states)
 
     def profile(self):
-        return self.__fetch('profile', self.profile_limit)
+        return self.__hw('profile', self.profile_limit)
 
     def attack(self):
-        return self.__fetch('attack', self.attack_limit)
+        return self.__hw('attack', self.attack_limit)
+
+    def profile_states(self):
+        return self.__states('profile', self.profile_limit)
+
+    def attack_states(self):
+        return self.__states('attack', self.attack_limit)
+
+    def profile_meta(self):
+        return self.__meta('profile', self.profile_limit)
+
+    def attack_meta(self):
+        return self.__meta('attack', self.attack_limit)
 
     def all(self):
         px, py = self.profile()

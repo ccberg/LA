@@ -9,6 +9,7 @@ https://github.com/bozhu/AES-Python/blob/master/aes.py
 Modified the AES class so it stores the hamming weights of the state in `hw_after_round`.
 """
 
+
 def sub_bytes(s):
     for i in range(4):
         for j in range(4):
@@ -149,7 +150,7 @@ class AES:
         assert len(master_key) in AES.rounds_by_key_size
         self.n_rounds = AES.rounds_by_key_size[len(master_key)]
         self._key_matrices = self._expand_key(master_key)
-        self.hw_after_round = np.zeros((self.n_rounds, len(master_key)), dtype=np.uint8)
+        self.state_after_round = np.zeros((self.n_rounds, len(master_key)), dtype=np.uint8)
 
     def _expand_key(self, master_key):
         """
@@ -195,20 +196,17 @@ class AES:
 
         plain_state = bytes2matrix(plaintext)
 
-        def extract_hw(state):
-            return np.array([hw(s) for s in gen_output(state)], dtype=np.uint8)
-
         add_round_key(plain_state, self._key_matrices[0])
 
         for i in range(1, self.n_rounds):
             sub_bytes(plain_state)
-            self.hw_after_round[i - 1] = extract_hw(plain_state)
+            self.state_after_round[i - 1] = gen_output(plain_state)
             shift_rows(plain_state)
             mix_columns(plain_state)
             add_round_key(plain_state, self._key_matrices[i])
 
         sub_bytes(plain_state)
-        self.hw_after_round[self.n_rounds - 1] = extract_hw(plain_state)
+        self.state_after_round[self.n_rounds - 1] = gen_output(plain_state)
         shift_rows(plain_state)
         add_round_key(plain_state, self._key_matrices[-1])
 
@@ -235,3 +233,9 @@ class AES:
         add_round_key(cipher_state, self._key_matrices[0])
 
         return gen_output(cipher_state)
+
+
+if __name__ == '__main__':
+    aes = AES([0] * 16)
+    aes.encrypt([1] * 16)
+    print(aes.state_after_round)

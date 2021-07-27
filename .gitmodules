@@ -1,3 +1,6 @@
 [submodule "LA-report"]
 	path = LA-report
 	url = git@github.com:ccberg/LA-report.git
+[submodule "examples/side-channel-analysis-toolbox"]
+	path = examples/side-channel-analysis-toolbox
+	url = https://github.com/AISyLab/side-channel-analysis-toolbox.git

@@ -133,3 +133,5 @@ dmypy.json
 
 # Numpy object ..cache
 .cache/
+/sca/
+/aisy/

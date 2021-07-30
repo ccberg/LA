@@ -1,5 +1,7 @@
 import numpy as np
 
+from src.trace_set.pollution import PollutionType
+
 
 def max_data(traces: np.ndarray):
     return np.iinfo(traces.dtype).max
@@ -19,3 +21,11 @@ def gen_test_data():
     traces = raw_traces[:, window[0]:window[1]]
 
     return raw_traces, window, traces
+
+
+def file_suffix(poll_type: PollutionType, poll_param):
+    suffix = ""
+    if poll_type is not None:
+        suffix = f"-{poll_type.name}-{poll_param}"
+
+    return suffix

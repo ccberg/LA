@@ -71,29 +71,20 @@ def wegener_p_gradient(model: Model, x_attack: np.array, y_attack: np.array):
     """
     Retrieves a p-gradient from applying the trained model on the attack trace set.
     """
-    total = 0
-    total_correct = 0
-    p_gradient = []
-
     predictions = model.predict(x_attack).argmax(axis=1)
     labels = y_attack.argmax(axis=1)
     correct = np.array(predictions == labels)
+    num_traces = len(correct)
+    p_gradient = np.ones(num_traces)
 
-    num_predictions = len(predictions)
-    num_pts = 200000
-
-    calc_pt = round(num_predictions / min(num_pts, num_predictions))
-
-    p_value = 1.0
-    for ix in range(num_predictions):
-        total += 1
+    total_correct = 0
+    for ix in range(num_traces):
+        total = ix + 1
         total_correct += correct[ix]
 
-        if ix % calc_pt == 0:
-            p_value = binomial_test(total, total_correct)
-        p_gradient.append(p_value)
+        p_gradient[ix] = binomial_test(total, total_correct)
 
-    return np.array(p_gradient)
+    return p_gradient
 
 
 def wegener_t_test_p_gradient(model: Model, x_attack: np.array, y_attack: np.array):

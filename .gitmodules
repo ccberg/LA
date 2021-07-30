@@ -4,3 +4,6 @@
 [submodule "examples/side-channel-analysis-toolbox"]
 	path = examples/side-channel-analysis-toolbox
 	url = https://github.com/AISyLab/side-channel-analysis-toolbox.git
+[submodule "examples/AISY_Framework"]
+	path = examples/AISY_Framework
+	url = https://github.com/AISyLab/AISY_Framework.git

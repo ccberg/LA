@@ -1,11 +1,46 @@
-
 import numpy as np
 from matplotlib.pyplot import show
+from numpy import logical_or, logical_and
 
 from tqdm import tqdm
 import seaborn as sns
 from src.tools.plotter import plot_p_gradient, PALETTE_GRADIENT
-from src.tvla.t import make_t_test
+from src.trace_set.database import Database
+from src.trace_set.set_hw import TraceSetHW
+from scipy.stats import t as stats_t
+
+
+# from src.tvla.t import make_t_test
+
+
+def make_t_test(na: int, nb: int):
+    """
+    Returns a t-test that takes the sample mean and variance for a list of sample points from A,
+    and those for a list of sample points for B.
+
+    Python implementation of the univariate t-test from the work of Schneider & Moradi (2016):
+        "Leakage assessment methodology: Extended version"
+    """
+
+    def welch_t_test(ma: np.array, va: np.array, mb: np.array, vb: np.array):
+        m = ma - mb
+
+        sa = va / na
+        sb = vb / nb
+
+        sab = sa + sb
+
+        t = m / np.sqrt(sab)
+
+        # Approximation from paper.
+        dof = na + nb
+
+        # Student's t CDF.
+        p = 2 * stats_t(df=dof).cdf(-np.abs(t))
+
+        return t, p
+
+    return welch_t_test
 
 
 def central_sum(x, order):
@@ -159,3 +194,32 @@ class Tvla:
         show(block=False)
 
         return g
+
+
+ASCAD_DEAD_TRACES = [68602]
+# ASCAD_DROP_LOW = [34388]
+
+
+def prepare_tvla(x, y):
+    mask = np.ones(len(x)).astype(bool)
+    mask[y == 4] = False
+
+    is_high = y[mask] > 4
+
+    return x[mask], is_high
+
+
+def prune(x, y, indexes=None):
+    mask = np.ones(len(x)).astype(bool)
+    mask[indexes] = False
+
+    return x[mask], y[mask]
+
+
+if __name__ == '__main__':
+    X, Y = prepare_tvla(*TraceSetHW(Database.ascad).profile())
+    X, Y = prune(X, Y, ASCAD_DEAD_TRACES)
+    A, B = X[~Y], X[Y]
+
+    print("TVLA, single instance", Group(A[:, 188:189], 2).t_test(Group(B[:, 188:189], 2), 2)[1])
+    # print("Lim B", LIMIT_B, Group(A[:, 188:189], 2).t_test(Group(B[:, 188:189], 2), 2)[1])

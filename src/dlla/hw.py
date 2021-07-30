@@ -43,7 +43,7 @@ def hamming_weight_prediction(mdl: Model, x: np.array, num_rows=None):
     return np.sum(pred * range(9), axis=1)
 
 
-def split_by_hw(mdl: Model, x_attack: np.array, y_attack: np.array, splits=1):
+def split_by_hw(mdl: Model, x_attack: np.array, y_attack: np.array):
     """
     Split traces in two classes.
     Class A: the hamming weight label is below 4, and class B: above 4.
@@ -58,17 +58,11 @@ def split_by_hw(mdl: Model, x_attack: np.array, y_attack: np.array, splits=1):
 
     np.random.shuffle(l4), np.random.shuffle(g4)
 
-    return np.array_split(l4, splits), np.array_split(g4, splits)
+    return l4, g4
 
 
-def get_p_values(a1: np.array, a2: np.array, b2: np.array, test=stats.ttest_ind):
-    """
-    Calculates the outer (A vs. B) and inner (A vs. A) p-values for both sets having the same distribution.
-    """
-    pv_ab = test(a1, b2, equal_var=False)[1]
-    pv_aa = test(a1, a2, equal_var=False)[1]
-
-    return pv_ab, pv_aa
+def get_p_values(low: np.array, high: np.array, test=stats.ttest_ind):
+    return test(low, high, equal_var=False)[1]
 
 
 def dlla_hw(mdl: Model, x_attack: np.array, y_attack: np.array):
@@ -76,8 +70,8 @@ def dlla_hw(mdl: Model, x_attack: np.array, y_attack: np.array):
     Categorizes traces into two classes: Class A: the hamming weight label is below 4, and class B: above 4.
     Calculates the outer (A vs. B) and inner (A vs. A) p-values for both sets having the same distribution.
     """
-    (l4a, l4b), (_, g4b) = split_by_hw(mdl, x_attack, y_attack, 2)
-    return get_p_values(l4a, l4b, g4b, stats.ttest_ind)
+    low, high = split_by_hw(mdl, x_attack, y_attack)
+    return get_p_values(low, high, stats.ttest_ind)
 
 
 def dlla_p_gradient(mdl: Model, x_attack: np.array, y_attack: np.array):
@@ -87,21 +81,16 @@ def dlla_p_gradient(mdl: Model, x_attack: np.array, y_attack: np.array):
 
     Calculates 100 steps between 2 traces and a provided maximum number of traces.
     """
-    (l4a, l4b), (_, g4b) = split_by_hw(mdl, x_attack, y_attack, 2)
+    low, high = split_by_hw(mdl, x_attack, y_attack)
 
-    gradient, inner_gradient = [], []
-
-    nr = min(len(l4b), len(g4b))
+    nr = min(len(low), len(high))
+    gradient = np.ones(nr)
 
     for i in range(nr):
-        p_value, inner_p_value = get_p_values(l4a[:i], l4b[:i], g4b[:i], stats.ttest_ind)
+        gradient[i] = get_p_values(low[:i], high[:i])
 
-        gradient.append(p_value)
-        inner_gradient.append(inner_p_value)
-
-    df = pd.DataFrame({"A vs. B": gradient, "A vs. A": inner_gradient})
-
-    return df
+    # Every t-test p-value consumes 2 traces.
+    return np.repeat(gradient, 2)
 
 
 def plot_predictions(mdl: Model, x_attack: np.array, y_attack: np.array):
@@ -132,3 +121,15 @@ def plot_gradient(mdl: Model, x_attack: np.array, y_attack: np.array, max_traces
           title="Attack trace predictions, $p$-gradient.\n A: $HW < 4$. B: $HW > 4$")
     g.invert_yaxis()
     g.axhline(10 ** -5, ls='--', color="red")
+
+
+def split_traces(x, y, balance=False):
+    yam = np.argmax(y, axis=1)
+    a = x[np.where(yam < 4)]
+    b = x[np.where(yam > 4)]
+
+    limit = None
+    if balance:
+        limit = min(len(a), len(b))
+
+    return a[:limit], b[:limit]

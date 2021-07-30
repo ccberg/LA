@@ -10,7 +10,10 @@ from numpy import logical_and as and_
 
 
 def tvla_cri_run(x, y, max_order, progress):
-    m = binomial(1, .5, len(x))  # Mask
+    num_traces = len(x)
+    m = np.zeros(num_traces, dtype=bool)
+    m[:round(num_traces / 2)] = True
+    np.random.shuffle(m)
 
     a1, a2 = x[and_(m, ~y)], x[and_(~m, ~y)]
     b1, b2 = x[and_(m, y)], x[and_(~m, y)]
@@ -29,21 +32,22 @@ def tvla_cri_run(x, y, max_order, progress):
     return p
 
 
-def get_xy(trace_set: TraceSetHW, random=False):
-    x, y = fixed_fixed(*trace_set.all())
+def get_xy(x, y, random=False):
+    y = y.copy()
+
     if random:
         np.random.shuffle(y)
 
     return x, y
 
 
-def tvla_cri(trace_set: TraceSetHW, max_order=4, random=False, progress=False):
-    x, y = get_xy(trace_set, random)
+def tvla_cri(x: np.ndarray, y: np.ndarray, max_order=4, random=False, progress=False):
+    x, y = get_xy(x, y, random)
     return tvla_cri_run(x, y, max_order, progress)
 
 
-def __tvla_cri_p_gradient(trace_set: TraceSetHW, order=2, random=False, max_limit: int = None):
-    x, y = get_xy(trace_set, random)
+def __tvla_cri_p_gradient(x: np.ndarray, y: np.ndarray, order=2, random=False, max_limit: int = None):
+    x, y = get_xy(x, y, random)
 
     num_traces = len(x)
     if max_limit is None:
@@ -59,13 +63,13 @@ def __tvla_cri_p_gradient(trace_set: TraceSetHW, order=2, random=False, max_limi
     return limits, pvs
 
 
-def tvla_cri_p_gradient(trace_set: TraceSetHW, order=2, random=False, max_limit: int = None, repeat=10):
-    limits, pvs = __tvla_cri_p_gradient(trace_set, order, random, max_limit)
+def tvla_cri_p_gradient(x: np.ndarray, y: np.ndarray, order=2, random=False, max_limit: int = None, repeat=10):
+    limits, pvs = __tvla_cri_p_gradient(x, y, order, random, max_limit)
     res = np.ones((repeat, len(pvs)))
     res[0] = pvs
 
     for ix in range(1, repeat):
-        res[ix] = __tvla_cri_p_gradient(trace_set, order, random, max_limit)[1]
+        res[ix] = __tvla_cri_p_gradient(x, y, order, random, max_limit)[1]
 
     pvs_res = np.nanmean(res, axis=0)
     pvs_res = np.nan_to_num(pvs_res, nan=1)
@@ -74,4 +78,7 @@ def tvla_cri_p_gradient(trace_set: TraceSetHW, order=2, random=False, max_limit:
 
 
 if __name__ == '__main__':
-    print(tvla_cri_p_gradient(TraceSetHW(Database.aisy), 1, False, 300, 2))
+    X, Y = TraceSetHW(Database.aisy).profile()
+    print(np.min(tvla_cri(X, Y)))
+
+    print(tvla_cri_p_gradient(X, Y, 1, False, 300, 2))

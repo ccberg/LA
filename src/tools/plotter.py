@@ -125,7 +125,7 @@ def plot_p_gradient(gradients: dict, title: str = "", max_traces: int = None, mi
     sns.lineplot(data={"Threshold": np.ones(max_len) * 10 ** -5},
                  palette=["red"], dashes=[(2, 2)])
 
-    g.set(yscale="log", ylabel="$p$-value for dist. $A \\neq$ dist. $B$", xlabel="Number of attack traces",
+    g.set(yscale="log", ylabel="$p$-value for dist. $A \\neq$ dist. $B$", xlabel="Number of traces",
           title=title, ylim=(min_y, 1))
     g.invert_yaxis()
 

@@ -131,3 +131,7 @@ def plot_p_gradient(gradients: dict, title: str = "", max_traces: int = None, mi
 
     show(block=False)
     store_sns(g, file_name)
+
+
+DLLA_PALETTE = sns.light_palette(sns.color_palette()[0], n_colors=5)
+TVLA_PALETTE = sns.light_palette(sns.color_palette()[1], n_colors=5)

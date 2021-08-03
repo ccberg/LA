@@ -10,7 +10,7 @@ def get_cache_loc():
     return f"./.cache"
 
 
-def cache_np(name, f=None, *args, v=1, replace=False):
+def cache_np(name, f=None, *args, v=1, replace=False) -> object:
     """
     Caches the result of a function. In case no function is supplied,
     the results of the specified ..cache name are returned.

@@ -23,7 +23,7 @@ def gen_test_data():
     return raw_traces, window, traces
 
 
-def file_suffix(poll_type: PollutionType, poll_param):
+def file_suffix(poll_type, poll_param):
     suffix = ""
     if poll_type is not None:
         suffix = f"-{poll_type.name}-{poll_param}"

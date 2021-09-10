@@ -18,12 +18,3 @@ def balance_bit(x, y_bit):
 
     return np.delete(x, drop_ixs, axis=0), np.delete(y_bit, drop_ixs, axis=0)
 
-
-def balance(x, y):
-    """
-    Balances a 2-class categorically labelled trace set.
-    """
-    y_bit = np.argmax(y, axis=1).astype(bool)
-    balanced_x, balanced_y_bit = balance_bit(x, y_bit)
-
-    return balanced_x, encode(balanced_y_bit, 2)

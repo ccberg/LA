@@ -1,19 +1,61 @@
 import numpy as np
+from numpy import logical_and as and_
 from numpy.random import binomial
+from scipy.stats import norm
 from tqdm import tqdm
 
 from src.trace_set.database import Database
 from src.trace_set.set_hw import TraceSetHW
-from src.trace_set.transform import fixed_fixed
 from src.tvla.tvla import Group
-from numpy import logical_and as and_
+
+STANDARD_NORM = norm(loc=0, scale=1)
 
 
-def tvla_cri_run(x, y, max_order, progress):
-    num_traces = len(x)
-    m = np.zeros(num_traces, dtype=bool)
-    m[:round(num_traces / 2)] = True
-    np.random.shuffle(m)
+def single_rho_test(x, y, progress):
+    """
+    Single rho-test, as described by the work of Ding et al. (2018):
+        "Towards Sound and Optimal Leakage Detection Procedure".
+    """
+    num_traces, num_sample_points = x.shape
+
+    sp_indexes = range(num_sample_points)
+    if progress:
+        sp_indexes = tqdm(sp_indexes, "Computing Correlation Coefficients")
+
+    # Correlation coefficient
+    rho = np.zeros(num_sample_points, dtype=np.float128)
+    for ix in sp_indexes:
+        rho[ix] = np.corrcoef(x[:, ix], y)[0, 1]
+
+    # np.log stands for the natural log (ln).
+    test_statistic = .5 * np.log((1 + rho) / (1 - rho)) * np.sqrt(num_traces)
+    p = 2 * STANDARD_NORM.sf(np.abs(test_statistic.astype(np.float64)))
+
+    return p
+
+
+def rho_test(x, y, random=False, progress=True):
+    """
+    rho-test from Ding et al. (2018) applied to the TVLA framework of Goodwill et al. (2011).
+    """
+    x, y = get_xy(x, y, random)
+    m = ab_mask(x)
+
+    x1, y1 = x[~m], y[~m]
+    x2, y2 = x[m], y[m]
+
+    p1 = single_rho_test(x1, y1, progress)
+    p2 = single_rho_test(x2, y2, progress)
+
+    return np.array([np.max((p1, p2), axis=0)])
+
+
+def tvla_t_test(x, y, max_order=3, random=False, progress=True):
+    """
+    t-test from Schneider and Moradi (2016) applied to the TVLA framework of Goodwill et al. (2011).
+    """
+    x, y = get_xy(x, y, random)
+    m = ab_mask(x)
 
     a1, a2 = x[and_(m, ~y)], x[and_(~m, ~y)]
     b1, b2 = x[and_(m, y)], x[and_(~m, y)]
@@ -32,6 +74,14 @@ def tvla_cri_run(x, y, max_order, progress):
     return p
 
 
+def ab_mask(x):
+    num_traces = len(x)
+    m = np.zeros(num_traces, dtype=bool)
+    m[:round(num_traces / 2)] = True
+    np.random.shuffle(m)
+    return m
+
+
 def get_xy(x, y, random=False):
     y = y.copy()
 
@@ -41,44 +91,11 @@ def get_xy(x, y, random=False):
     return x, y
 
 
-def tvla_cri(x: np.ndarray, y: np.ndarray, max_order=4, random=False, progress=False):
-    x, y = get_xy(x, y, random)
-    return tvla_cri_run(x, y, max_order, progress)
-
-
-def __tvla_cri_p_gradient(x: np.ndarray, y: np.ndarray, order=2, random=False, max_limit: int = None):
-    x, y = get_xy(x, y, random)
-
-    num_traces = len(x)
-    if max_limit is None:
-        max_limit = num_traces
-
-    max_traces = min(num_traces, max_limit)
-    limits = np.linspace(2, max_traces, min(200, max_traces - 2)).astype(int)
-    pvs = np.ones(len(limits))
-
-    for ix, limit in tqdm(enumerate(limits), total=len(limits), desc="Creating p-gradient"):
-        pvs[ix] = np.min(tvla_cri_run(x[:limit], y[:limit], order, False)[order])
-
-    return limits, pvs
-
-
-def tvla_cri_p_gradient(x: np.ndarray, y: np.ndarray, order=2, random=False, max_limit: int = None, repeat=10):
-    limits, pvs = __tvla_cri_p_gradient(x, y, order, random, max_limit)
-    res = np.ones((repeat, len(pvs)))
-    res[0] = pvs
-
-    for ix in range(1, repeat):
-        res[ix] = __tvla_cri_p_gradient(x, y, order, random, max_limit)[1]
-
-    pvs_res = np.nanmean(res, axis=0)
-    pvs_res = np.nan_to_num(pvs_res, nan=1)
-
-    return limits, pvs_res
-
-
 if __name__ == '__main__':
     X, Y = TraceSetHW(Database.aisy).profile()
-    print(np.min(tvla_cri(X, Y)))
 
-    print(tvla_cri_p_gradient(X, Y, 1, False, 300, 2))
+    # t_pvs = tvla_t_test(X, Y)
+    rho_pvs = rho_test(X[:1000], Y[:1000])
+
+    # print(np.min(t_pvs), np.argmin(t_pvs))
+    print(np.min(rho_pvs), np.argmin(rho_pvs))

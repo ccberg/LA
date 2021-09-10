@@ -22,7 +22,7 @@ def init_plots():
     """
     Sets the correct plot settings for all plots in a notebook.
     """
-    sns.set_style('whitegrid')
+    sns.set_style('whitegrid', {"font.family": "Roboto", 'usetex': True, 'mathtext.fontset': 'Times New Roman'})
     plt.rcParams['figure.dpi'] = 300
 
 
@@ -109,7 +109,7 @@ def plot_accu(accu: dict, title: str = "", sub_sample=False):
 PALETTE_GRADIENT = "mako"
 
 
-def plot_p_gradient(gradients: dict, title: str = "", max_traces: int = None, min_y: float = 10 ** -32,
+def plot_p_gradient(gradients: dict, title: str = "", max_traces: int = None, min_y: float = 10 ** -40,
                     palette=None, file_name=None):
     """
     Plots p-gradients. Supply a file name if the file should be stored.

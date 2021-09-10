@@ -1,8 +1,10 @@
 import os
+from typing import Optional
 
 import numpy as np
 
 from src.data.preprocess.hw import hamming_weights
+from src.tools.la import fixed_fixed, balance
 from src.trace_set.abstract import AbstractTraceSet
 from src.trace_set.database import Database
 from src.trace_set.pollution import Pollution
@@ -11,7 +13,8 @@ from src.trace_set.pollution import Pollution
 class TraceSetHW(AbstractTraceSet):
     type = "hw"
 
-    def __init__(self, database: Database, pollution: Pollution = None, limits: (int, int) = (None, None)):
+    def __init__(self, database: Database, pollution: Optional[Pollution] = None,
+                 limits: (Optional[int], Optional[int]) = (None, None)):
         super().__init__(database, pollution)
 
         self.profile_limit, self.attack_limit = limits
@@ -37,7 +40,7 @@ class TraceSetHW(AbstractTraceSet):
 
         self.close()
 
-    def __states(self, group_name: str, limit: int):
+    def __states(self, group_name: str, limit: Optional[int]):
         """
         Returns the AES states corresponding to the labels of this trace set.
         """
@@ -51,7 +54,7 @@ class TraceSetHW(AbstractTraceSet):
 
         return traces, states
 
-    def __meta(self, group_name: str, limit: int):
+    def __meta(self, group_name: str, limit: Optional[int]):
         f = self.open('r')
 
         grp = f[group_name]
@@ -62,10 +65,29 @@ class TraceSetHW(AbstractTraceSet):
 
         return plain, key
 
-    def __hw(self, group_name: str, limit: int):
+    def __hw(self, group_name: str, limit: Optional[int]):
         traces, states = self.__states(group_name, limit)
 
         return traces, hamming_weights(states)
+
+    def __la(self, group_name: str, limit: Optional[int], balanced: bool):
+        f = self.open('r')
+
+        grp = f[group_name]
+
+        if 'la_bit' in grp:
+            traces = np.array(grp['traces'][:limit])
+            la_bit = np.array(grp['la_bit'][:limit])
+            self.close()
+        else:
+            self.close()
+
+            all_traces, hw = self.__hw(group_name, limit)
+            traces, la_bit = fixed_fixed(all_traces, hw)
+            if balanced:
+                traces, la_bit = balance(traces, la_bit)
+
+        return traces, la_bit
 
     def profile(self):
         return self.__hw('profile', self.profile_limit)
@@ -78,6 +100,12 @@ class TraceSetHW(AbstractTraceSet):
 
     def attack_states(self):
         return self.__states('attack', self.attack_limit)
+
+    def profile_la(self, balanced=False):
+        return self.__la('profile', self.profile_limit, balanced)
+
+    def attack_la(self, balanced=False):
+        return self.__la('attack', self.attack_limit, balanced)
 
     def profile_meta(self):
         return self.__meta('profile', self.profile_limit)
@@ -104,4 +132,4 @@ class TraceSetHW(AbstractTraceSet):
 if __name__ == '__main__':
     ts = TraceSetHW(Database.aisy)
 
-    print(ts.all())
+    print(np.mean(ts.profile_la(True)[1]), np.mean(ts.profile_la()[1]))

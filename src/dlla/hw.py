@@ -1,23 +1,18 @@
 import numpy as np
-import pandas as pd
 import seaborn as sns
 from scipy.stats import stats
 from tensorflow.python.keras import Model
-from tensorflow.python.keras.utils.np_utils import to_categorical
 
 from src.data.ascad import TraceGroup
+from src.dlla.berg import make_mlp
+from src.tools.dl import encode
+from src.trace_set.database import Database
+from src.trace_set.set_hw import TraceSetHW
 
 NUM_CLASSES = 9  # Byte ranges from 00 (HW = 0) to FF (HW = 8), resulting in 9 classes for HW.
 
 
-def encode(y, num_classes=NUM_CLASSES):
-    """
-    One-hot encode labels
-    """
-    return to_categorical(y, num_classes=num_classes)
-
-
-def prepare_traces_dl(x, y, x_att, y_att):
+def prepare_traces_dl(x, y, x_att, y_att, num_classes=NUM_CLASSES):
     """
     Normalizes the traces, one-hot encodes the labels.
     Returns profiling traces, labels and attack traces, labels.
@@ -26,7 +21,7 @@ def prepare_traces_dl(x, y, x_att, y_att):
     norm_x = (x - prof_mean) / prof_std
     norm_x_att = (x_att - prof_mean) / prof_std
 
-    return norm_x, encode(y), norm_x_att, encode(y_att)
+    return norm_x, encode(y, num_classes), norm_x_att, encode(y_att, num_classes)
 
 
 def fetch_traces(tg: TraceGroup):
@@ -35,12 +30,11 @@ def fetch_traces(tg: TraceGroup):
     return prepare_traces_dl(profile.traces, profile.hw_labels(), attack.traces, attack.hw_labels())
 
 
-def hamming_weight_prediction(mdl: Model, x: np.array, num_rows=None):
+def predict(mdl: Model, x: np.array, num_classes=NUM_CLASSES):
     """
     Uses the weighted mean of the prediction to predict the hamming weight as a real number between [0..8].
     """
-    pred = mdl.predict(x)[:num_rows]
-    return np.sum(pred * range(9), axis=1)
+    return np.sum(mdl.predict(x) * range(num_classes), axis=1)
 
 
 def split_by_hw(mdl: Model, x_attack: np.array, y_attack: np.array):
@@ -51,43 +45,53 @@ def split_by_hw(mdl: Model, x_attack: np.array, y_attack: np.array):
     Returns traces for classes A and B
     """
     hws = np.argmax(y_attack, axis=1)
-    nr = min(len(x_attack), len(y_attack))
 
-    l4 = hamming_weight_prediction(mdl, x_attack[np.where(hws < 4)], nr)
-    g4 = hamming_weight_prediction(mdl, x_attack[np.where(hws > 4)], nr)
+    l4 = predict(mdl, x_attack[np.where(hws < 4)], NUM_CLASSES)
+    g4 = predict(mdl, x_attack[np.where(hws > 4)], NUM_CLASSES)
 
     np.random.shuffle(l4), np.random.shuffle(g4)
 
     return l4, g4
 
 
-def get_p_values(low: np.array, high: np.array, test=stats.ttest_ind):
-    return test(low, high, equal_var=False)[1]
+def prediction_test(low: np.array, high: np.array, test=stats.ttest_ind):
+    _, p = test(low, high, equal_var=False)
+
+    if np.isnan(p):
+        return 1.
+
+    return p
 
 
-def dlla_hw(mdl: Model, x_attack: np.array, y_attack: np.array):
+def dlla_closed_p(mdl: Model, x: np.array, y: np.array):
     """
-    Categorizes traces into two classes: Class A: the hamming weight label is below 4, and class B: above 4.
-    Calculates the outer (A vs. B) and inner (A vs. A) p-values for both sets having the same distribution.
+    p-value for closed-source DL-LA
     """
-    low, high = split_by_hw(mdl, x_attack, y_attack)
-    return get_p_values(low, high, stats.ttest_ind)
+    la_bit = np.argmax(y, axis=1)
+    low, high = predict(mdl, x[~la_bit], 2), predict(mdl, x[la_bit], 2)
+    return prediction_test(low, high, stats.ttest_ind)
 
 
-def dlla_p_gradient(mdl: Model, x_attack: np.array, y_attack: np.array):
+def dlla_known_p(mdl: Model, x: np.array, y: np.array):
+    """
+    p-value for open-source DL-LA
+    """
+    low, high = split_by_hw(mdl, x, y)
+    return prediction_test(low, high, stats.ttest_ind)
+
+
+def dlla_p_gradient(mdl: Model, x: np.array, y: np.array):
     """
     Creates a gradient of the p-value that predictions for A and B follow the same distribution.
     Class A consists of traces which are labelled with a hamming weight below 4 and class B above 4.
-
-    Calculates 100 steps between 2 traces and a provided maximum number of traces.
     """
-    low, high = split_by_hw(mdl, x_attack, y_attack)
+    low, high = split_by_hw(mdl, x, y)
 
     nr = min(len(low), len(high))
     gradient = np.ones(nr)
 
     for i in range(nr):
-        gradient[i] = get_p_values(low[:i], high[:i])
+        gradient[i] = prediction_test(low[:i], high[:i])
 
     # Every t-test p-value consumes 2 traces.
     return np.repeat(gradient, 2)
@@ -133,3 +137,27 @@ def split_traces(x, y, balance=False):
         limit = min(len(a), len(b))
 
     return a[:limit], b[:limit]
+
+
+if __name__ == '__main__':
+    # import tensorflow as tf
+    # tf.config.list_physical_devices("GPU")
+    while True:
+        trace_set = TraceSetHW(Database.ascad, limits=(None, 1000))
+        x9, y9, x9_att, y9_att = prepare_traces_dl(*trace_set.profile(), *trace_set.attack(), num_classes=9)
+        np.random.shuffle(y9_att)
+
+        mdl_unknown = make_mlp(x9, y9, num_classes=9)
+        dlla_k_p = dlla_known_p(mdl_unknown, x9_att, y9_att)
+
+        print("9 class", dlla_k_p)
+
+        # trace_set = TraceSetHW(Database.ascad, Pollution(PollutionType.desync, 1), limits=(None, 1000))
+        # x2, y2, x2_att, y2_att = prepare_traces_dl(*trace_set.profile_la(), *trace_set.attack_la(), num_classes=2)
+        # np.random.shuffle(y2)
+        # np.random.shuffle(y2_att)
+        #
+        # mdl_unknown = make_mlp(x2, y2, progress=False, num_classes=2)
+        # dlla_uk_p = dlla_closed_p(mdl_unknown, x2_att, y2_att)
+        #
+        # print("2 class", dlla_uk_p)

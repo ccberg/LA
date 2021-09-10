@@ -48,7 +48,7 @@ def binomial_test(validation_size, num_correct):
     return p_value
 
 
-def make_mlp_wegener(x, y, verbose=True):
+def make_mlp_wegener(x, y, progress=True):
     """
     Create a Multi Layer Perceptron model as described in the paper.
     """
@@ -62,7 +62,7 @@ def make_mlp_wegener(x, y, verbose=True):
 
     mdl.compile(optimizer=Adam(learning_rate=0.001), loss='mse', metrics='accuracy')
 
-    mdl.fit(x, y, shuffle=True, batch_size=150, epochs=5, verbose=verbose)
+    mdl.fit(x, y, shuffle=True, batch_size=150, epochs=5, verbose=progress)
 
     return mdl
 
@@ -110,6 +110,16 @@ def wegener_t_test_p_gradient(model: Model, x_attack: np.array, y_attack: np.arr
     return np.array(p_gradient)
 
 
+def wegener_p(mdl: Model, x_att: np.ndarray, y_att: np.ndarray):
+    predictions = mdl.predict(x_att).argmax(axis=1)
+    labels = y_att.argmax(axis=1)
+
+    correct = np.sum(predictions == labels)
+    total = len(predictions)
+
+    return binomial_test(total, correct)
+
+
 def wegener_performance(a, b):
     """
     Labels and z-normalizes traces, trains a MLP (as shown in the DL-LA paper).
@@ -119,4 +129,3 @@ def wegener_performance(a, b):
     dlla_model = make_mlp_wegener(*dlla_traces[:2])
 
     return wegener_p_gradient(dlla_model, *dlla_traces[2:])
-

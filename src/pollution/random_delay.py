@@ -3,9 +3,15 @@ from numpy import random
 from tqdm import tqdm
 
 from src.pollution.tools import max_data
+from src.trace_set.database import Database
+from src.trace_set.set_hw import TraceSetHW
+
+A = 5
+B = 3
+DELAY_AMP = 10
 
 
-def random_delay(traces: np.ndarray, a: int, b: int, delay_amplitude: int, delay_probability=.5):
+def random_delay(traces: np.ndarray, a: int = A, b: int = B, delay_amplitude: int = DELAY_AMP, delay_probability=.5):
     """
     Based on the implementation of L. Wu & S. Picek (2020): "Remove Some Noise: On Pre-processing of Side-channel
         Measurements with Autoencoders."
@@ -24,8 +30,8 @@ def random_delay(traces: np.ndarray, a: int, b: int, delay_amplitude: int, delay
 
         # Computing (too much) random variables all at once yields >2x speed increase.
         do_jitter = random.binomial(1, delay_probability, trace_length)
-        lower_bound = random.randint(0, a - b, size=trace_length)
-        upper_bound = random.randint(0, b, size=trace_length) + lower_bound
+        lower_bound = random.randint(0, a - b, size=trace_length + 1)
+        upper_bound = random.randint(0, b, size=trace_length + 1) + lower_bound
 
         while sp_new < trace_length and sp_old < trace_length:
             r = do_jitter[sp_new]
@@ -45,3 +51,7 @@ def random_delay(traces: np.ndarray, a: int, b: int, delay_amplitude: int, delay
                     sp_new += 3
 
     return res
+
+
+if __name__ == '__main__':
+    random_delay(TraceSetHW(Database.ascad_none).profile()[0], delay_probability=0.0001)

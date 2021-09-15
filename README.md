@@ -11,10 +11,17 @@ Thesis performed under supervision of Dr. [S. Picek](https://www.tudelft.nl/en/s
 - Other: [la@ccberg.nl](mailto:la@ccberg.nl)
 
 ## Setup
-1. **Clone repository**: All commands and paths in this readme are relative to the root of the repository.
-1. **Fetch data**: Clone the ASCAD repo in `/data/` and rename it's root dir to `/data/ASCAD`. 
-   Extract the fixed and variable key traces as described in their repo.
-1. **Setup conda**: Create the `LA` environment using `conda env create -f ./support/conda.yml` and then activate it 
+
+1. **Clone repository**: All commands and paths in this readme are relative to the root of the repository. 
+1. **Create dir roots**: Create data directory roots (`/data` and `/data/LA`) or update their default values in 
+`./src/config.py`.
+1. **Fetch data**: 
+   - Clone the ASCAD repo in `/data/` and rename it's root dir to `/data/ASCAD`. 
+   Extract the fixed and variable key traces as described in their repo. (`~70GiB` of data)
+   - **Alternative**: Skip point of interest extraction by downloading preprocessed data 
+     [here](https://ccberg.nl/la/preprocessed-data/) (`~634MB` of data). Extract the three directories from this archive
+     to the preprocessed data directory root `/data/LA/`. 
+1. **Setup conda environment**: Create the `LA` environment using `conda env create -f ./support/conda.yml` and then activate it 
    using `conda activate LA`.
 
 ## Getting started

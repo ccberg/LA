@@ -5,7 +5,7 @@ from tensorflow.python.keras.optimizer_v2.adam import Adam
 NUM_CLASSES = 9
 
 
-def mlp_best(x, y, params):
+def build_mlp(x, y, params):
     """
     Returns a trained MLP using a tunable set of parameters
     """
@@ -26,17 +26,25 @@ def mlp_best(x, y, params):
     return mdl
 
 
+# Params for MLP_best from Benadjila et al. (2020)
+PARAMS_BEST = {
+    'activation': 'relu',
+    'optimizer': Adam(learning_rate=0.001),
+    'losses': 'categorical_crossentropy',
+    'hidden_layers': [200] * 5,
+    'batch_size': 200,
+    'epochs': 5,
+    'progress': True,
+    'num_classes': NUM_CLASSES
+}
+
+
 def make_mlp(x, y, num_classes=NUM_CLASSES, progress=True):
     """
     Based on MLP_best from Benadjila et al. (2020)
     """
-    return mlp_best(x, y, {
-        'activation': 'relu',
-        'optimizer': Adam(learning_rate=0.001),
-        'losses': 'categorical_crossentropy',
-        'hidden_layers': [200] * 5,
-        'batch_size': 200,
-        'epochs': 5,
-        'progress': progress,
-        'num_classes': num_classes
-    })
+    params = PARAMS_BEST
+    params['num_classes'] = num_classes
+    params['progress'] = progress
+
+    return build_mlp(x, y, params)

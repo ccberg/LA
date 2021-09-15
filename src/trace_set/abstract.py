@@ -3,7 +3,7 @@ import os
 import h5py
 import numpy as np
 
-from src.tools.constants import DATA_DIR
+from src.config import PREP_DATA_ROOT
 from src.trace_set.database import Database
 from src.trace_set.pollution import Pollution
 
@@ -12,7 +12,7 @@ class AbstractTraceSet:
     type = None
 
     def __init__(self, database: Database, pollution: Pollution = None):
-        dir_root = os.path.join(DATA_DIR, database.name, self.get_type())
+        dir_root = os.path.join(PREP_DATA_ROOT, database.name, self.get_type())
         self.h5 = None
 
         if pollution is None:

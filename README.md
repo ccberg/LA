@@ -28,14 +28,12 @@ Thesis performed under supervision of Dr. [S. Picek](https://www.tudelft.nl/en/s
 
 ### Project
 
-- `./books/` contains a collection of Jupyter notebooks which form a large part of the experiments done in this 
-  master thesis. 
+- `./report/` contains a collection of Jupyter notebooks containing the experiments described in the master 
+  thesis report. 
 - `./src/` contains a toolbox for powering the experiments in the Jupyter notebooks. 
-- `./report/` contains a copy of the Master thesis report.
+- `./thesis-report/` contains a copy of the Master thesis report.
 
 ### Caching
-`./.cache/` contains all results from long-running functions in the report. As the cache might grow large 
-(order of `GiB`s) it is not included in this repo. A copy of the original cache can be requested from the author.
-   
-*The cache's subdirectory structure follows that of `./books/`. Leaf directories in the cache correspond to individual
-notebooks.*
+`./report/**/.cache/` contains pre-processed data from experiments that take a long time to run. As the cache might grow
+large (order of `GiB`s) it is not included in this repository. A copy of the original caches can be requested from the 
+author.

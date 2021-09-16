@@ -1,5 +1,5 @@
-[submodule "LA-report"]
-	path = LA-report
+[submodule "thesis-report"]
+	path = thesis-report
 	url = git@github.com:ccberg/LA-report.git
 [submodule "examples/side-channel-analysis-toolbox"]
 	path = examples/side-channel-analysis-toolbox

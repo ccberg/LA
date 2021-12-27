@@ -6,10 +6,6 @@ Master thesis performed as part of an MSc programme in Computer Science.
 Thesis performed under supervision of Dr. [S. Picek](https://www.tudelft.nl/en/staff/s.picek/) at the 
 [Artificial Intelligence and Security](https://www.aisylab.com/) lab of the Delft University of Technology.
 
-## Contact
-- University mail: [c.c.berg@student.tudelft.nl](mailto:c.c.berg@student.tudelft.nl)
-- Other: [la@ccberg.nl](mailto:la@ccberg.nl)
-
 ## Setup
 
 1. **Clone repository**: All commands and paths in this readme are relative to the root of the repository. 

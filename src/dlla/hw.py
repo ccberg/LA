@@ -1,7 +1,7 @@
 import numpy as np
 import seaborn as sns
 from scipy.stats import stats
-from tensorflow.python.keras import Model
+from tensorflow.keras import Model
 
 from src.data.ascad import TraceGroup
 from src.dlla.berg import make_mlp

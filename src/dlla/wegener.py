@@ -1,10 +1,10 @@
 import numpy as np
 from scipy.special import comb
 from scipy.stats import norm, ttest_ind
-from tensorflow.python.keras import Sequential
-from tensorflow.python.keras.layers import Dense
-from tensorflow.python.keras.models import Model
-from tensorflow.python.keras.optimizer_v2.adam import Adam
+from tensorflow.keras import Sequential
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.models import Model
+from tensorflow.keras.optimizers import Adam
 from tqdm import tqdm
 
 from src.dlla.preparation import prepare_dlla, labelize

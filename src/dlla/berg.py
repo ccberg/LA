@@ -1,6 +1,6 @@
 from tensorflow.keras.layers import *
 from tensorflow.keras.models import *
-from tensorflow.python.keras.optimizer_v2.adam import Adam
+from tensorflow.keras.optimizers import Adam
 
 NUM_CLASSES = 9
 
